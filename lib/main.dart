@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'courses.dart';
+import 'course.dart';
 
 void main() {
   runApp(const MainApp());
@@ -16,7 +17,8 @@ class MainApp extends StatelessWidget {
       routes: {
         // named routes
         '/': (context) => const HomeScreen(), 
-        '/courses': (context) => Courses(), 
+        '/courses': (context) => Courses(),
+        '/course': (context) => Course(),
       },
     );
   }

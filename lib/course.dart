@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
+
+import 'widgets/character_widget.dart';
+import 'widgets/scene_object.dart';
+import 'widgets/typewriter_text.dart';
+import 'widgets/choice_box_widget.dart';
 
 class Course extends StatefulWidget {
   const Course({super.key});
@@ -25,6 +29,9 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
 
   late AnimationController _characterFadeController;
   late Animation<double> _characterFadeAnimation;
+
+  late AnimationController _choiceBoxFadeController;
+  late Animation<double> _choiceBoxFadeAnimation;
 
   @override
   void initState() {
@@ -62,6 +69,15 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
       parent: _characterFadeController,
       curve: Curves.easeIn,
     );
+
+    _choiceBoxFadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _choiceBoxFadeAnimation = CurvedAnimation(
+      parent: _choiceBoxFadeController,
+      curve: Curves.easeIn,
+    );
   }
 
   @override
@@ -69,16 +85,21 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
     _fadeController.dispose();
     _characterController.dispose();
     _characterFadeController.dispose();
+    _choiceBoxFadeController.dispose();
     super.dispose();
   }
 
   void _nextStep() {
+    // Prevent advancing state by tapping when choices are visible
+    if (_step == 2) return;
+
     setState(() {
       if (_step < _messages.length - 1) {
         _step++;
         if (_step == 2) {
           _characterController.forward();
           _fadeController.forward();
+          _choiceBoxFadeController.forward(from: 0.0);
         } else if (_step == 1) {
           _characterFadeController.forward();
         }
@@ -122,51 +143,30 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
                   ),
                 ),
 
-                // Fade in scene
                 if (_step >= 2)
-                  Align(
-                    alignment: const Alignment(-0.6, -0.8),
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Container(
-                        width: 230,
-                        height: 230,
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
+                  SceneObject(
+                    fadeAnimation: _fadeAnimation,
                   ),
-                if (_step >=
-                    1) // Show character after first message starts typing
-                  AnimatedBuilder(
-                    animation: _characterController,
-                    builder: (context, child) {
-                      return Align(
-                        alignment: _characterAlignment
-                            .value, // This handles the movement
-                        child: FadeTransition(
-                          opacity:
-                              _characterFadeAnimation, // This handles the fade-in
-                          child: Transform.rotate(
-                            angle: _step >= 2
-                                ? -0.2
-                                : 0, // slight oblique angle
-                            child: Container(
-                              width: 100,
-                              height: 150,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                if (_step >= 1)
+                  CharacterWidget(
+                    alignment: _characterAlignment,
+                    opacity: _characterFadeAnimation,
+                    step: _step,
+                  ),
+                if (_step == 2)
+                  Align(
+                    alignment: const Alignment(0.1, 0.9),
+                    child: ChoiceBoxWidget(
+                      opacity: _choiceBoxFadeAnimation,
+                      onChoiceSelected: () {
+                        _nextStep(); // Proceed after a choice is made
+                      },
+                    ),
                   ),
                 Align(
                   alignment: _step < 2
                       ? const Alignment(0.0, 0.8)
-                      : const Alignment(-0.3, 0.1),
+                      : const Alignment(-0.23, 0.1),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: TypewriterText(
@@ -187,81 +187,6 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
           ),
         ),
       ),
-    );
-  }
-}
-
-class TypewriterText extends StatefulWidget {
-  final String text;
-  final TextStyle style;
-  final Duration speed;
-
-  const TypewriterText(
-    this.text, {
-    super.key,
-    this.style = const TextStyle(
-      fontSize: 25,
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-    this.speed = const Duration(milliseconds: 500),
-  });
-
-  @override
-  _TypewriterTextState createState() => _TypewriterTextState();
-}
-
-class _TypewriterTextState extends State<TypewriterText> {
-  late final List<String> _words;
-  String _displayedText = '';
-  Timer? _timer;
-  int _wordIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _words = widget.text.split(' ');
-    _startAnimation();
-  }
-
-  @override
-  void didUpdateWidget(TypewriterText oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.text != oldWidget.text) {
-      _timer?.cancel();
-      _wordIndex = 0;
-      _displayedText = '';
-      _words.clear();
-      _words.addAll(widget.text.split(' '));
-      _startAnimation();
-    }
-  }
-
-  void _startAnimation() {
-    _timer = Timer.periodic(widget.speed, (timer) {
-      if (_wordIndex < _words.length) {
-        setState(() {
-          _displayedText = '$_displayedText ${_words[_wordIndex]}'.trim();
-          _wordIndex++;
-        });
-      } else {
-        _timer?.cancel();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      _displayedText,
-      textAlign: TextAlign.center,
-      style: widget.style,
     );
   }
 }

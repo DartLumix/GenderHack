@@ -14,11 +14,12 @@ class Course extends StatefulWidget {
 
 class _CourseState extends State<Course> with TickerProviderStateMixin {
   int _step = 0;
+  int? _selectedChoice;
   final List<String> _messages = [
     'Hi there!',
     'I\'m Ada',
     'Choose one',
-    'Great!',
+    'Great! You choose option ',
   ];
 
   late AnimationController _fadeController;
@@ -89,11 +90,14 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _nextStep() {
+  void _nextStep([int? choiceIndex]) {
     // Prevent advancing state by tapping when choices are visible
-    if (_step == 2) return;
+    if (_step == 2 && choiceIndex == null) return;
 
     setState(() {
+      if (choiceIndex != null) {
+        _selectedChoice = choiceIndex;
+      }
       if (_step < _messages.length - 1) {
         _step++;
         if (_step == 2) {
@@ -158,8 +162,9 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
                     alignment: const Alignment(0.1, 0.9),
                     child: ChoiceBoxWidget(
                       opacity: _choiceBoxFadeAnimation,
-                      onChoiceSelected: () {
-                        _nextStep(); // Proceed after a choice is made
+                      onChoiceSelected: (index) {
+                        print('Choice $index selected');
+                        _nextStep(index); // Proceed after a choice is made
                       },
                     ),
                   ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ChoiceBoxWidget extends StatelessWidget {
   final Animation<double> opacity;
-  final VoidCallback onChoiceSelected;
+  final ValueChanged<int> onChoiceSelected;
 
   const ChoiceBoxWidget({
     super.key,
@@ -40,12 +40,12 @@ class ChoiceBoxWidget extends StatelessWidget {
               spacing: 20,
               children: [
                 ElevatedButton(
-                  onPressed: onChoiceSelected,
+                  onPressed: () => onChoiceSelected(0),
                   style: buttonStyle,
                   child: const Text('Option A'),
                 ),
                 ElevatedButton(
-                  onPressed: onChoiceSelected,
+                  onPressed: () => onChoiceSelected(1),
                   style: buttonStyle,
                   child: const Text('Option B'),
                 ),
@@ -56,12 +56,12 @@ class ChoiceBoxWidget extends StatelessWidget {
               spacing: 20,
               children: [
                 ElevatedButton(
-                  onPressed: onChoiceSelected,
+                  onPressed: () => onChoiceSelected(2),
                   style: buttonStyle,
                   child: const Text('Option C'),
                 ),
                 ElevatedButton(
-                  onPressed: onChoiceSelected,
+                  onPressed: () => onChoiceSelected(3),
                   style: buttonStyle,
                   child: const Text('Option D'),
                 ),

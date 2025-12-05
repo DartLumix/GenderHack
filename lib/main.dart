@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'courses.dart';
+import 'screens/screens.dart';
 import 'course.dart';
 
 void main() {
@@ -15,10 +15,11 @@ class MainApp extends StatelessWidget {
       title: 'Gender Hack App',
       initialRoute: '/',
       routes: {
-        // named routes
+        // named routes 
         '/': (context) => const HomeScreen(), 
-        '/courses': (context) => Courses(),
+        '/courses': (context) => const Courses(),
         '/course': (context) => Course(),
+        '/home_page': (context) => const HomePage(),
       },
     );
   }
@@ -34,7 +35,7 @@ class HomeScreen extends StatelessWidget {
       body: Center(
         child: ElevatedButton(
           onPressed: () {
-            Navigator.pushNamed(context, '/courses');
+            Navigator.pushNamed(context, '/home_page');
           },
           child: const Text('Courses'), 
         ),

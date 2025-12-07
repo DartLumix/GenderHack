@@ -7,8 +7,10 @@ environment:
   sdk: ^3.11.0-134.0.dev
 
 dependencies:
+  fl_chart: ^1.1.1
   flutter:
     sdk: flutter
+  lottie: ^3.3.2
   persistent_bottom_nav_bar: ^6.2.1
 
 dev_dependencies:

@@ -11,6 +11,14 @@ class Courses extends StatefulWidget {
 
 class _CoursesState extends State<Courses> {
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-cache images to avoid a flash of the background color on load.
+    precacheImage(const AssetImage('assets/back-purp-white.jpg'), context);
+    precacheImage(const AssetImage('assets/Ada.png'), context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
@@ -27,10 +35,12 @@ class _CoursesState extends State<Courses> {
               colorFilter: ColorFilter.mode(
                 Color.fromRGBO(0, 0, 0, 0.5),
                 BlendMode.darken,
+                
               ),
               opacity: 0.8,
+              filterQuality: FilterQuality.low,
             ),
-            color: Colors.white,
+            // The color is removed to prevent it from showing during image load.
           ),
 
           child: Padding(

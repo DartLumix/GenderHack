@@ -24,14 +24,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> _buildScreens() {
+    List<Widget> buildScreens() {
       return [
         const screens.Dashboard(),
         const screens.Courses(),
         const screens.Profile(),
       ];
     }
-    List<PersistentBottomNavBarItem> _navBarsItems() {
+    List<PersistentBottomNavBarItem> navBarsItems() {
       final titles = ["Dashboard", "Courses", "Profile"];
       final icons = [Icons.dashboard, Icons.school, Icons.person];
 
@@ -55,8 +55,8 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: Colors.black,
           context,
           controller: _controller,
-          screens: _buildScreens(),
-          items: _navBarsItems(),
+          screens: buildScreens(),
+          items: navBarsItems(),
           navBarStyle: NavBarStyle.style6,
           padding: const EdgeInsets.only(bottom: 10, top: 5),
         ),

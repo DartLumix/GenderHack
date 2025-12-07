@@ -2,31 +2,29 @@ import 'package:flutter/material.dart';
 
 class CharacterWidget extends StatelessWidget {
   final Animation<Alignment> alignment;
+  final Animation<double> angleAnimation;
   final Animation<double> opacity;
-  final int step;
-  final double angle;
   final Widget? child;
 
   const CharacterWidget({
     super.key,
     required this.alignment,
+    required this.angleAnimation,
     required this.opacity,
-    required this.step,
-    this.angle = -0.2,
     this.child,
   });
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: alignment,
+      animation: Listenable.merge([alignment, angleAnimation]),
       builder: (context, animatedChild) {
         return Align(
           alignment: alignment.value, // This handles the movement
           child: FadeTransition(
             opacity: opacity, // This handles the fade-in
             child: Transform.rotate(
-              angle: step >= 2 ? angle : 0, // Apply angle after moving
+              angle: angleAnimation.value, // Apply animated angle
               child: animatedChild,
             ),
           ),

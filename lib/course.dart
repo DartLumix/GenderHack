@@ -18,8 +18,9 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
   final List<String> _messages = [
     'Hi there!',
     'I\'m Ada',
-    'Choose one',
-    'Great! You choose option ',
+    'I will guide you into my story.',
+    'Choose one.',
+    'Great! You chose option ',
   ];
 
   late AnimationController _fadeController;
@@ -27,6 +28,9 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
 
   late AnimationController _characterController;
   late Animation<Alignment> _characterAlignment;
+
+  late AnimationController _characterAngleController;
+  late Animation<double> _characterAngleAnimation;
 
   late AnimationController _characterFadeController;
   late Animation<double> _characterFadeAnimation;
@@ -62,6 +66,17 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
           ),
         );
 
+    _characterAngleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _characterAngleAnimation = Tween<double>(begin: 0.0, end: -0.2).animate(
+      CurvedAnimation(
+        parent: _characterAngleController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
     _characterFadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -85,27 +100,31 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
   void dispose() {
     _fadeController.dispose();
     _characterController.dispose();
+    _characterAngleController.dispose();
     _characterFadeController.dispose();
     _choiceBoxFadeController.dispose();
     super.dispose();
   }
 
   void _nextStep([int? choiceIndex]) {
-    // Prevent advancing state by tapping when choices are visible
-    if (_step == 2 && choiceIndex == null) return;
+    // Prevent advancing state by tapping when choices are visible at step 3
+    if (_step == 3 && choiceIndex == null) return;
 
     setState(() {
       if (choiceIndex != null) {
         _selectedChoice = choiceIndex;
       }
-      if (_step < _messages.length - 1) {
+      if (_step < _messages.length) {
         _step++;
-        if (_step == 2) {
+        if (_step == 1) {
+          _characterFadeController.forward();
+        } else if (_step == 3) {
           _characterController.forward();
+          _characterAngleController.forward();
           _fadeController.forward();
           _choiceBoxFadeController.forward(from: 0.0);
-        } else if (_step == 1) {
-          _characterFadeController.forward();
+        } else if (_step == 5) {
+          Navigator.pop(context);
         }
       } else {
         // Optional: Navigate back or to another screen when done
@@ -147,7 +166,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
                   ),
                 ),
 
-                if (_step >= 2)
+                if (_step >= 3)
                   SceneObject(
                     fadeAnimation: _fadeAnimation,
                   ),
@@ -155,9 +174,9 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
                   CharacterWidget(
                     alignment: _characterAlignment,
                     opacity: _characterFadeAnimation,
-                    step: _step,
+                    angleAnimation: _characterAngleAnimation,
                   ),
-                if (_step == 2)
+                if (_step == 3)
                   Align(
                     alignment: const Alignment(0.1, 0.9),
                     child: ChoiceBoxWidget(
@@ -169,13 +188,15 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
                     ),
                   ),
                 Align(
-                  alignment: _step < 2
+                  alignment: _step < 3
                       ? const Alignment(0.0, 0.8)
                       : const Alignment(-0.23, 0.1),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: TypewriterText(
-                      _messages[_step], // The text to be animated
+                      _step < _messages.length
+                          ? _messages[_step]
+                          : '', // The text to be animated
                       key: ValueKey<int>(
                         _step,
                       ), // Essential for telling Flutter to recreate the widget

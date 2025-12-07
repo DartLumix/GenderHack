@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'screens.dart' as screens;
+import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,63 +10,68 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late PersistentTabController _controller;
+  late PageController _pageController;
+  int _selectedIndex = 1;
 
   @override
   void initState() {
     super.initState();
-    _controller = PersistentTabController(initialIndex: 0);
-    // Add a listener to rebuild the widget when the tab changes.
-    _controller.addListener(() {
-      setState(() {});
-    });
+    _pageController = PageController(initialPage: 1);
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> buildScreens() {
-      return [
-        const screens.Dashboard(),
-        const screens.Courses(),
-        const screens.Profile(),
-      ];
-    }
-    List<PersistentBottomNavBarItem> navBarsItems() {
-      final titles = ["Dashboard", "Courses", "Profile"];
-      final icons = [Icons.dashboard, Icons.school, Icons.person];
-
-      return [
-        for (int i = 0; i < titles.length; i++)
-          PersistentBottomNavBarItem(
-            icon: Icon(icons[i]),
-            // Only show the title if the item's index matches the controller's index.
-            title: _controller.index == i ? titles[i] : null,
-            activeColorPrimary: Colors.blue,
-            inactiveColorPrimary: Colors.grey,
-            textStyle: const TextStyle(fontSize: 12),
-          ),
-      ];
-    }
+    final List<Widget> pages = [
+      const screens.Dashboard(),
+      const screens.Courses(),
+      const screens.Profile(),
+    ];
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: PersistentTabView(
-          backgroundColor: Colors.black,
-          context,
-          controller: _controller,
-          screens: buildScreens(),
-          items: navBarsItems(),
-          navBarStyle: NavBarStyle.style6,
-          padding: const EdgeInsets.only(bottom: 10, top: 5),
+      body: PageView(
+        controller: _pageController,
+        children: pages,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+      bottomNavigationBar: StylishBottomBar(
+        items: [
+          BottomBarItem(
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon: const Icon(Icons.dashboard),
+            title: const Text('Dashboard'),
+          ),
+          BottomBarItem(
+            icon: const Icon(Icons.school_outlined),
+            selectedIcon: const Icon(Icons.school),
+            title: const Text('Courses'),
+          ),
+          BottomBarItem(
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
+            title: const Text('Profile'),
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          _pageController.jumpToPage(index);
+        },
+        option: DotBarOptions(
+          dotStyle: DotStyle.tile,
         ),
+        backgroundColor: Colors.black,
+        
       ),
     );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 }

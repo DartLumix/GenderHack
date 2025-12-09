@@ -241,21 +241,8 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    final List<Goal> goals = [
-      Goal(title: 'Complete "Intro to Programming"', progress: 0.75),
-      Goal(title: 'Learn about Ada Lovelace', progress: 0.5),
-      Goal(title: 'Finish "Women in Tech" module', progress: 0.2),
-    ];
-
-    final List<FlSpot> chartData = [
-      for (int i = 0; i < 7; i++)
-        FlSpot(
-          i.toDouble(),
-          (i * 0.5) + (i % 2 == 0 ? 1 : -0.5) * (i * 0.2) + 1,
-        ),
-    ];
-
     double height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -404,11 +391,8 @@ class _DashboardState extends State<Dashboard> {
                                           child: Text(_getGroupingName(group))),
                                     )
                                     .toList(),
-                                onChanged: (val) {
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    setState(() => _selectedGrouping = val!);
-                                  });
-                                },
+                                onChanged: (val) =>
+                                    setState(() => _selectedGrouping = val!),
                               ),
                             ),
                           ),
@@ -416,95 +400,6 @@ class _DashboardState extends State<Dashboard> {
                       ),
                     ],
                     const SizedBox(height: 100),
-                    Container(
-                      padding: const EdgeInsets.all(16.0),
-                      width: width * 0.9,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color.fromRGBO(156, 39, 176, 0.3),
-                            const Color.fromRGBO(0, 0, 0, 0.4),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        border: Border.all(
-                            color: const Color.fromRGBO(156, 39, 176, 0.5)),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Weekly Progress',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Roboto',
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            height: height * 0.25,
-                            child: widget.isPrimary
-                                ? LineChart(
-                                    LineChartData(
-                                      gridData: FlGridData(show: false),
-                                      titlesData: FlTitlesData(show: false),
-                                      borderData: FlBorderData(show: false),
-                                      lineBarsData: [
-                                        LineChartBarData(
-                                          spots: chartData,
-                                          isCurved: true,
-                                          color: Colors.purpleAccent,
-                                          barWidth: 4,
-                                          isStrokeCapRound: true,
-                                          dotData: FlDotData(show: false),
-                                          belowBarData: BarAreaData(
-                                            show: true,
-                                            color: const Color.fromRGBO(
-                                                156, 39, 176, 0.3),
-                                          ),
-                                        ),
-                                      ],
-                                      lineTouchData: LineTouchData(
-                                        enabled: true,
-                                        touchTooltipData: LineTouchTooltipData(
-                                          getTooltipItems: (touchedSpots) {
-                                            return touchedSpots.map((spot) {
-                                              return LineTooltipItem(
-                                                '${spot.y.toStringAsFixed(1)} points',
-                                                const TextStyle(
-                                                    color: Colors.white),
-                                              );
-                                            }).toList();
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                    duration:
-                                        const Duration(milliseconds: 1000),
-                                    curve: Curves.easeInOut,
-                                  )
-                                : const Center(
-                                    child: Icon(Icons.show_chart,
-                                        color: Colors.purpleAccent, size: 48)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Your Goals',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Roboto',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ...goals.map((goal) => GoalProgressTile(goal: goal)),
                   ],
                 ],
               ),
@@ -513,6 +408,83 @@ class _DashboardState extends State<Dashboard> {
         ),
       ),
     );
+  }
+
+  Widget _buildFilterContainer(double width, DataSetType type) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+            width: width * 0.9,
+            margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 20.0),
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              gradient: LinearGradient(
+                colors: [
+                  const Color.fromRGBO(156, 39, 176, 0.3),
+                  const Color.fromRGBO(0, 0, 0, 0.4),
+                ],
+              ),
+              border: Border.all(
+                  color: const Color.fromRGBO(156, 39, 176, 0.5)),
+            ),
+            child: _buildFilterSection(type)),
+        if (type == DataSetType.enrollments)
+          Positioned(
+            right: 16,
+            child: Icon(Icons.arrow_forward_ios, color: Colors.white.withOpacity(0.3)),
+          ),
+        if (type == DataSetType.employees)
+          Positioned(
+            left: 16,
+            child: Icon(Icons.arrow_back_ios, color: Colors.white.withOpacity(0.3)),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFilterSection(DataSetType type) {
+    if (type == DataSetType.enrollments) {
+      return Column(
+        children: [
+          const Text('Filter Enrollments', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: [
+              _buildFilterDropdown(_years, 'Year', _selectedYear, (val) => setState(() => _selectedYear = val)),
+              _buildFilterDropdown(_regions, 'Region', _selectedRegion, (val) => setState(() => _selectedRegion = val)),
+              _buildFilterDropdown(_genders, 'Gender', _selectedGender, (val) => setState(() => _selectedGender = val)),
+              _buildFilterDropdown(_courseTypes, 'Course Type', _selectedCourseType, (val) => setState(() => _selectedCourseType = val)),
+              _buildFilterDropdown(_facoulties, 'Facoulty', _selectedFacoulty, (val) => setState(() => _selectedFacoulty = val)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text('Scroll to change dataset', style: TextStyle(color: Colors.white70, fontSize: 10),),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          const Text('Filter Employees', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: [
+              _buildFilterDropdown(_departments, 'Department', _selectedDepartment, (val) => setState(() => _selectedDepartment = val)),
+              _buildFilterDropdown(_sectors, 'Sector', _selectedSector, (val) => setState(() => _selectedSector = val)),
+              _buildFilterDropdown(_genders, 'Gender', _selectedGender, (val) => setState(() => _selectedGender = val)),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+          Text('Scroll to change dataset', style: TextStyle(color: Colors.white70, fontSize: 10),),
+        ],
+      );
+    }
   }
 
   Widget _buildFilterContainer(double width, DataSetType type) {
@@ -784,53 +756,49 @@ class _DashboardState extends State<Dashboard> {
       i++;
     });
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 40, bottom: 10),
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          barTouchData: BarTouchData(
-            touchTooltipData: BarTouchTooltipData(
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              if (groupedData.length > 5) {
                 final key = groupedData.keys.elementAt(group.x);
                 final value = rod.toY.toInt();
                 return BarTooltipItem(
                   '$key\n$value',
-                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  const TextStyle(color: Colors.white),
                 );
-              },
-            ),
+              }
+              return null;
+            },
           ),
-          barGroups: barGroups,
-          gridData: const FlGridData(show: false),
-          borderData: FlBorderData(show: false),
-          titlesData: FlTitlesData(
-            leftTitles: const AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 65,
-              ),
-            ),
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: groupedData.length <= 5,
-                getTitlesWidget: (double value, TitleMeta meta) {
-                  final index = value.toInt();
-                  if (index >= 0 && index < groupedData.keys.length) {
-                    return SideTitleWidget(
-                      meta: meta,
-                      child: Text(groupedData.keys.elementAt(index), style: const TextStyle(
-                                  color: Colors.white, fontSize: 14, overflow: TextOverflow.fade)),
-                    );
-                  }
-                  return Container();
-                },
-                reservedSize: 30,
-              ),
+        ),
+        barGroups: barGroups,
+        gridData: FlGridData(show: false),
+        borderData: FlBorderData(show: false),
+        titlesData: FlTitlesData(
+          leftTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: groupedData.length <= 5,
+              getTitlesWidget: (double value, TitleMeta meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < groupedData.keys.length) {
+                  return SideTitleWidget(
+                    meta: meta,
+                    child: Text(groupedData.keys.elementAt(index), style: const TextStyle(
+                                color: Colors.white, fontSize: 14, overflow: TextOverflow.fade)),
+                  );
+                }
+                return Container();
+              },
+              reservedSize: 30,
             ),
           ),
         ),
@@ -926,77 +894,6 @@ class FullscreenChartPage extends StatelessWidget {
       backgroundColor: Colors.black,
       appBar: AppBar(title: Text(title), backgroundColor: Colors.purple),
       body: Center(child: Padding(padding: const EdgeInsets.fromLTRB(16, 200, 16, 16), child: chart)),
-    );
-  }
-}
-
-class Goal {
-  final String title;
-  final double progress;
-
-  Goal({required this.title, required this.progress});
-}
-
-class GoalProgressTile extends StatelessWidget {
-  final Goal goal;
-  const GoalProgressTile({super.key, required this.goal});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        gradient: LinearGradient(
-          colors: [
-            const Color.fromRGBO(66, 66, 66, 0.5),
-            const Color.fromRGBO(33, 33, 33, 0.6),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        border: Border.all(color: Colors.grey.shade800),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            goal.title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: goal.progress,
-                    backgroundColor: Colors.grey.shade700,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Colors.purpleAccent,
-                    ),
-                    minHeight: 8,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                '${(goal.progress * 100).toInt()}%',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

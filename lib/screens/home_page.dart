@@ -37,25 +37,33 @@ class _HomePageState extends State<HomePage> {
           type: ExpandableFabType.fan,
           pos: ExpandableFabPos.center,
           margin: const EdgeInsets.only(bottom: -35), // This is no longer needed
-          fanAngle: 180,
+          fanAngle: 130,
           openButtonBuilder: RotateFloatingActionButtonBuilder(
-              child: const Icon(Icons.school, color: Colors.white),
+              child: const Icon(Icons.school, color: Colors.white, ),
               backgroundColor: Colors.purple),
           closeButtonBuilder: RotateFloatingActionButtonBuilder(
               child: const Icon(Icons.close, color: Colors.white),
               backgroundColor: Colors.purple),
           children: [
             FloatingActionButton(
+              onPressed: () {},
+              heroTag: null,
               child: const Icon(Icons.lock),
-              onPressed: () {},
             ),
             FloatingActionButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => screens.Courses(),
+                ), 
+              ),
+              heroTag: null,
               child: const Icon(Icons.school),
-              onPressed: () {},
             ),
             FloatingActionButton(
-              child: const Icon(Icons.search),
               onPressed: () {},
+              heroTag: null,
+              child: const Icon(Icons.search),
             ),
           ]),
       floatingActionButtonLocation: ExpandableFab.location,

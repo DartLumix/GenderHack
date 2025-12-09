@@ -3,6 +3,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import 'package:gender_hack/models/enrollment_data.dart';
+import 'package:gender_hack/models/employee_data.dart';
+
 
 class Dashboard extends StatefulWidget {
   final bool isPrimary;
@@ -16,124 +18,225 @@ class Dashboard extends StatefulWidget {
 }
 
 enum DataView { table, bar, pie }
-enum Grouping { year, region, gender, courseType, facoulty }
+enum DataSetType { enrollments, employees }
+
+enum EnrollmentGrouping { year, region, gender, courseType, facoulty }
+enum EmployeeGrouping { department, sector, gender, count }
 
 class _DashboardState extends State<Dashboard> {
+  // Data state
+  late PageController _pageController;
   List<EnrollmentData> _allEnrollments = [];
   List<EnrollmentData> _filteredEnrollments = [];
+  List<EmployeeData> _allEmployees = [];
+  List<EmployeeData> _filteredEmployees = [];
 
+  // UI State
   Set<DataView> _selectedView = {DataView.table};
-  Grouping _selectedGrouping = Grouping.gender;
+  DataSetType _selectedDataSet = DataSetType.enrollments;
+  dynamic _selectedGrouping;
 
+  // Enrollment filters
   String? _selectedYear;
   String? _selectedRegion;
-  String? _selectedGender;
   String? _selectedCourseType;
   String? _selectedFacoulty;
 
   final List<String> _years = [];
   final List<String> _regions = [];
-  final List<String> _genders = [];
   final List<String> _courseTypes = [];
   final List<String> _facoulties = [];
+
+  // Employee filters
+  String? _selectedDepartment;
+  String? _selectedSector; // This was being used but not applied in filters.
+
+  final List<String> _departments = [];
+  final List<String> _sectors = [];
+
+
+  // Common filter
+  String? _selectedGender;
+  final List<String> _genders = [];
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
     if (widget.isPrimary) {
       _loadJsonData();
     }
+    _selectedGrouping = EnrollmentGrouping.gender;
   }
 
   @override
   void didUpdateWidget(covariant Dashboard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isPrimary && !oldWidget.isPrimary && _allEnrollments.isEmpty) {
-      // Reload data if we are coming back to this tab and data is not loaded.
       _loadJsonData();
     }
   }
 
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _resetFilters() {
+    _selectedYear = null;
+    _selectedRegion = null;
+    _selectedGender = null;
+    _selectedCourseType = null;
+    _selectedFacoulty = null;
+    _selectedDepartment = null;
+    _selectedSector = null;
+  }
+
   Future<void> _loadJsonData() async {
-    final String rawData =
-        await rootBundle.loadString("assets/data/uni_subsbho.json");
-    final List<dynamic> listData = json.decode(rawData) as List<dynamic>;
-    final enrollments =
-        listData.map((item) => EnrollmentData.fromJson(item)).toList();
+    _resetFilters();
 
-    _years.addAll(
-        enrollments.map((e) => e.academicYear).toSet().toList()..sort());
-    _regions.addAll(enrollments.map((e) => e.region).toSet().toList()..sort());
-    _genders.addAll(enrollments.map((e) => e.gender).toSet().toList()..sort());
-    _courseTypes
-        .addAll(enrollments.map((e) => e.courseType).toSet().toList()..sort());
-    _facoulties
-        .addAll(enrollments.map((e) => e.facoulty).toSet().toList()..sort());
+    if (_selectedDataSet == DataSetType.enrollments) {
+      // Clear only enrollment-specific data if it's being reloaded
+      if (_allEnrollments.isNotEmpty) {
+        _allEnrollments = [];
+        _filteredEnrollments = [];
+        _years.clear(); _regions.clear(); _courseTypes.clear(); _facoulties.clear();
+      }
 
-    setState(() {
-      _allEnrollments = enrollments;
-      _filteredEnrollments = enrollments;
-      _selectedFacoulty = null;
-    });
+      final String rawData =
+          await rootBundle.loadString("assets/data/uni_subsbho.json");
+      final List<dynamic> listData = json.decode(rawData) as List<dynamic>;
+      final enrollments =
+          listData.map((item) => EnrollmentData.fromJson(item)).toList();
+
+      _years.addAll(
+          enrollments.map((e) => e.academicYear).toSet().toList()..sort());
+      _regions.addAll(enrollments.map((e) => e.region).toSet().toList()..sort());
+      if (_genders.isEmpty) { // Only populate if empty to avoid duplicates from other dataset
+        _genders.addAll(enrollments.map((e) => e.gender).toSet().toList()..sort());
+      }
+      _courseTypes.addAll(
+          enrollments.map((e) => e.courseType).toSet().toList()..sort());
+      _facoulties
+          .addAll(enrollments.map((e) => e.facoulty).toSet().toList()..sort());
+
+      setState(() {
+        _allEnrollments = enrollments;
+        _filteredEnrollments = enrollments;
+        _selectedGrouping = EnrollmentGrouping.gender;
+      });
+    } else {
+      // Load employee data
+      // Clear only employee-specific data if it's being reloaded
+      if (_allEmployees.isNotEmpty) {
+        _allEmployees = [];
+        _filteredEmployees = [];
+        _departments.clear(); _sectors.clear();
+      }
+
+      final String rawData =
+          await rootBundle.loadString("assets/data/employees.json");
+      final List<dynamic> listData = json.decode(rawData) as List<dynamic>;
+      final employees =
+          listData.map((item) => EmployeeData.fromJson(item)).toList();
+
+      _departments
+          .addAll(employees.map((e) => e.department).toSet().toList()..sort());
+          _sectors.addAll(employees.map((e) => e.sector).toSet().toList()..sort());
+      if (_genders.isEmpty) { // Only populate if empty to avoid duplicates from other dataset
+        _genders.addAll(employees.map((e) => e.gender).toSet().toList()..sort());
+      }
+
+      setState(() {
+        _allEmployees = employees;
+        _filteredEmployees = employees;
+        _selectedGrouping = EmployeeGrouping.gender;
+      });
+    }
   }
 
   void _applyFilters() {
-    List<EnrollmentData> filtered = _allEnrollments;
-
-    if (_selectedYear != null) {
-      filtered =
-          filtered.where((e) => e.academicYear == _selectedYear).toList();
+    if (_selectedDataSet == DataSetType.enrollments) {
+      List<EnrollmentData> filtered = _allEnrollments;
+      if (_selectedYear != null) {
+        filtered =
+            filtered.where((e) => e.academicYear == _selectedYear).toList();
+      }
+      if (_selectedRegion != null) {
+        filtered = filtered.where((e) => e.region == _selectedRegion).toList();
+      }
+      if (_selectedGender != null) {
+        filtered = filtered.where((e) => e.gender == _selectedGender).toList();
+      }
+      if (_selectedCourseType != null) {
+        filtered =
+            filtered.where((e) => e.courseType == _selectedCourseType).toList();
+      }
+      if (_selectedFacoulty != null) {
+        filtered =
+            filtered.where((e) => e.facoulty == _selectedFacoulty).toList();
+      }
+      setState(() => _filteredEnrollments = filtered);
+    } else {
+      List<EmployeeData> filtered = _allEmployees;
+      if (_selectedDepartment != null) {
+        filtered =
+            filtered.where((e) => e.department == _selectedDepartment).toList();
+      }
+      if (_selectedSector != null) {
+        filtered =
+            filtered.where((e) => e.sector == _selectedSector).toList();
+      }
+      if (_selectedGender != null) {
+        filtered = filtered.where((e) => e.gender == _selectedGender).toList();
+      }
+      setState(() => _filteredEmployees = filtered);
     }
-    if (_selectedRegion != null) {
-      filtered = filtered.where((e) => e.region == _selectedRegion).toList();
-    }
-    if (_selectedGender != null) {
-      filtered = filtered.where((e) => e.gender == _selectedGender).toList();
-    }
-    if (_selectedCourseType != null) {
-      filtered =
-          filtered.where((e) => e.courseType == _selectedCourseType).toList();
-    }
-    if (_selectedFacoulty != null) {
-      filtered =
-          filtered.where((e) => e.facoulty == _selectedFacoulty).toList();
-    }
-    setState(() => _filteredEnrollments = filtered);
   }
 
   Map<String, int> _getGroupedData() {
     final Map<String, int> groupedData = {};
+    final data = _selectedDataSet == DataSetType.enrollments
+        ? _filteredEnrollments
+        : _filteredEmployees;
 
-    for (var entry in _filteredEnrollments) {
+    for (var entry in data) {
       String key;
-      switch (_selectedGrouping) {
-        case Grouping.year:
-          key = entry.academicYear;
-          break;
-        case Grouping.region:
-          key = entry.region;
-          break;
-        case Grouping.gender:
-          key = entry.gender;
-          break;
-        case Grouping.courseType:
-          key = entry.courseType;
-          break;
-        case Grouping.facoulty:
-          key = entry.facoulty;
-          break;
+      num value;
+
+      if (entry is EnrollmentData) {
+        value = entry.enrolled;
+        switch (_selectedGrouping as EnrollmentGrouping) {
+          case EnrollmentGrouping.year: key = entry.academicYear; break;
+          case EnrollmentGrouping.region: key = entry.region; break;
+          case EnrollmentGrouping.gender: key = entry.gender; break;
+          case EnrollmentGrouping.courseType: key = entry.courseType; break;
+          case EnrollmentGrouping.facoulty: key = entry.facoulty; break;
+        }
+      } else if (entry is EmployeeData) {
+        value = entry.count;
+        switch (_selectedGrouping as EmployeeGrouping) {
+          case EmployeeGrouping.department: key = entry.department; break;
+          case EmployeeGrouping.gender: key = entry.gender; break;
+          case EmployeeGrouping.sector: key = entry.sector; break;
+          case EmployeeGrouping.count: key = entry.count.toString(); break;
+        }
+      } else {
+        continue;
       }
-      groupedData.update(key, (value) => value + entry.enrolled,
-          ifAbsent: () => entry.enrolled);
+
+      groupedData.update(key, (v) => v + value.toInt(), ifAbsent: () => value.toInt());
     }
     return groupedData;
   }
 
-  String _getGroupingName(Grouping grouping) {
+  String _getGroupingName(dynamic grouping) {
     final name = grouping.toString().split('.').last;
     return name.replaceAllMapped(
         RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}').trimLeft();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -165,71 +268,28 @@ class _DashboardState extends State<Dashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                      width: width * 0.9,
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color.fromRGBO(156, 39, 176, 0.3),
-                            const Color.fromRGBO(0, 0, 0, 0.4),
-                          ],
-                        ),
-                        border: Border.all(
-                            color: const Color.fromRGBO(156, 39, 176, 0.5)),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text('Filter Enrollments',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 16),
-                          Wrap(
-                            spacing: 8.0,
-                            runSpacing: 8.0,
-                            children: [
-                              _buildFilterDropdown(
-                                  _years,
-                                  'Year',
-                                  _selectedYear, (val) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  setState(() => _selectedYear = val);
-                                });
-                              }),
-                              _buildFilterDropdown(
-                                  _regions,
-                                  'Region',
-                                  _selectedRegion, (val) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  setState(() => _selectedRegion = val);
-                                });
-                              }),
-                              _buildFilterDropdown(
-                                  _genders,
-                                  'Gender',
-                                  _selectedGender, (val) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  setState(() => _selectedGender = val);
-                                });
-                              }),
-                              _buildFilterDropdown(
-                                  _courseTypes,
-                                  'Course Type',
-                                  _selectedCourseType, (val) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  setState(() => _selectedCourseType = val);
-                                });
-                              }),
-                              _buildFilterDropdown(
-                                  _facoulties,
-                                  'Facoulty',
-                                  _selectedFacoulty,
-                                  (val) => setState(() => _selectedFacoulty = val)),
-                            ],
-                          ),
+                  SizedBox(
+                    height: 250,
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        final newSet = index == 0 ? DataSetType.enrollments : DataSetType.employees;
+                        if (_selectedDataSet == newSet) return;
+                        setState(() {
+                          _selectedDataSet = newSet;
+                          _loadJsonData();
+                        });
+                      },
+                      children: [
+                        _buildFilterContainer(width, DataSetType.enrollments),
+                        _buildFilterContainer(width, DataSetType.employees),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  if ((_selectedDataSet == DataSetType.enrollments && _filteredEnrollments.isNotEmpty) || (_selectedDataSet == DataSetType.employees && _filteredEmployees.isNotEmpty)) ...[
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
                             onPressed: _applyFilters,
@@ -245,30 +305,17 @@ class _DashboardState extends State<Dashboard> {
                           ),
                           TextButton(
                             onPressed: () {
-                              setState(() {
-                                _selectedYear = null;
-                                _selectedRegion = null;
-                                _selectedGender = null;
-                                _selectedCourseType = null;
-                                _selectedFacoulty = null;
-                                _filteredEnrollments = _allEnrollments;
-                              });
+                              _resetFilters();
+                              _applyFilters();
                             },
                             child: const Text(
                               'Clear Filters',
                               style: TextStyle(
                                   color: Colors.white70, fontSize: 13),
                             ),
-                          )
-                        ],
-                      )),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  if (_filteredEnrollments.isNotEmpty) ...[
+                          ),
                     const SizedBox(height: 24),
-                    const Text(
-                      'Enrollment Data',
+                     Text(_selectedDataSet == DataSetType.enrollments ? 'Enrollment Data' : 'Employee Data',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -277,8 +324,11 @@ class _DashboardState extends State<Dashboard> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                        'Showing ${_filteredEnrollments.length} of ${_allEnrollments.length} records',
+                    if (_selectedDataSet == DataSetType.enrollments)
+                      Text(
+                          'Showing ${_filteredEnrollments.length} of ${_allEnrollments.length} records',
+                          style: TextStyle(color: Colors.white70)),
+                    if (_selectedDataSet == DataSetType.employees) Text('Showing ${_filteredEmployees.length} of ${_allEmployees.length} records',
                         style: TextStyle(color: Colors.white70)),
                     const SizedBox(height: 16),
                     SegmentedButton<DataView>(
@@ -340,16 +390,19 @@ class _DashboardState extends State<Dashboard> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: DropdownButtonHideUnderline(
-                              child: DropdownButton<Grouping>(
+                                child: DropdownButton<dynamic>(
                                 value: _selectedGrouping,
                                 dropdownColor: Colors.grey[850],
                                 style: const TextStyle(color: Colors.white),
-                                icon: const Icon(Icons.arrow_drop_down,
-                                    color: Colors.white),
-                                items: Grouping.values
-                                    .map((group) => DropdownMenuItem(
-                                        value: group,
-                                        child: Text(_getGroupingName(group))))
+                                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                                items: (_selectedDataSet == DataSetType.enrollments
+                                        ? EnrollmentGrouping.values
+                                        : EmployeeGrouping.values)
+                                    .map<DropdownMenuItem<dynamic>>(
+                                      (group) => DropdownMenuItem<dynamic>(
+                                          value: group,
+                                          child: Text(_getGroupingName(group))),
+                                    )
                                     .toList(),
                                 onChanged: (val) {
                                   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -462,6 +515,83 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+  Widget _buildFilterContainer(double width, DataSetType type) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+            width: width * 0.9,
+            margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 20.0),
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              gradient: LinearGradient(
+                colors: [
+                  const Color.fromRGBO(156, 39, 176, 0.3),
+                  const Color.fromRGBO(0, 0, 0, 0.4),
+                ],
+              ),
+              border: Border.all(
+                  color: const Color.fromRGBO(156, 39, 176, 0.5)),
+            ),
+            child: _buildFilterSection(type)),
+        if (type == DataSetType.enrollments)
+          Positioned(
+            right: 16,
+            child: Icon(Icons.arrow_forward_ios, color: Colors.white.withOpacity(0.3)),
+          ),
+        if (type == DataSetType.employees)
+          Positioned(
+            left: 16,
+            child: Icon(Icons.arrow_back_ios, color: Colors.white.withOpacity(0.3)),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFilterSection(DataSetType type) {
+    if (type == DataSetType.enrollments) {
+      return Column(
+        children: [
+          const Text('Filter Enrollments', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: [
+              _buildFilterDropdown(_years, 'Year', _selectedYear, (val) => setState(() => _selectedYear = val)),
+              _buildFilterDropdown(_regions, 'Region', _selectedRegion, (val) => setState(() => _selectedRegion = val)),
+              _buildFilterDropdown(_genders, 'Gender', _selectedGender, (val) => setState(() => _selectedGender = val)),
+              _buildFilterDropdown(_courseTypes, 'Course Type', _selectedCourseType, (val) => setState(() => _selectedCourseType = val)),
+              _buildFilterDropdown(_facoulties, 'Facoulty', _selectedFacoulty, (val) => setState(() => _selectedFacoulty = val)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text('Scroll to change dataset', style: TextStyle(color: Colors.white70, fontSize: 10),),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          const Text('Filter Employees', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: [
+              _buildFilterDropdown(_departments, 'Department', _selectedDepartment, (val) => setState(() => _selectedDepartment = val)),
+              _buildFilterDropdown(_sectors, 'Sector', _selectedSector, (val) => setState(() => _selectedSector = val)),
+              _buildFilterDropdown(_genders, 'Gender', _selectedGender, (val) => setState(() => _selectedGender = val)),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+          Text('Scroll to change dataset', style: TextStyle(color: Colors.white70, fontSize: 10),),
+        ],
+      );
+    }
+  }
+
   Widget _buildDataView() {
     final view = _selectedView.first;
     Widget child;
@@ -471,7 +601,7 @@ class _DashboardState extends State<Dashboard> {
         child = SingleChildScrollView(
             key: const ValueKey('datatable'),
             scrollDirection: Axis.horizontal,
-            child: _buildDataTable());
+            child: _selectedDataSet == DataSetType.enrollments ? _buildEnrollmentDataTable() : _buildEmployeeDataTable());
         break;
       case DataView.bar:
         child = SizedBox(
@@ -542,8 +672,8 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  Widget _buildDataTable() {
-    return DataTable(
+  Widget _buildEnrollmentDataTable() {
+     return DataTable(
       headingRowColor: WidgetStateColor.resolveWith(
           (states) => Colors.purple.withOpacity(0.3)),
       columns: [
@@ -585,8 +715,45 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+  Widget _buildEmployeeDataTable() {
+    return DataTable(
+      headingRowColor: WidgetStateColor.resolveWith(
+          (states) => Colors.purple.withOpacity(0.3)),
+      columns: [
+        'Department',
+        'Sector',
+        'Gender',
+        'Count'
+      ]
+          .map((key) => DataColumn(
+                label: Text(
+                  key,
+                  style: const TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
+                ),
+              ))
+          .toList(),
+      rows: _filteredEmployees
+          .map((row) => DataRow(
+                cells: [
+                  DataCell(Text(row.department,
+                      style: const TextStyle(color: Colors.white))),
+                  DataCell(Text(row.sector,
+                      style: const TextStyle(color: Colors.white))),
+                  DataCell(Text(row.gender,
+                      style: const TextStyle(color: Colors.white))),
+                  DataCell(Text(row.count.toString(),
+                      style: const TextStyle(color: Colors.white))),
+                ],
+              ))
+          .toList(),
+    );
+  }
+
   Widget _buildBarChart() {
-    if (_filteredEnrollments.isEmpty) {
+    if ((_selectedDataSet == DataSetType.enrollments && _filteredEnrollments.isEmpty) || (_selectedDataSet == DataSetType.employees && _filteredEmployees.isEmpty)) {
       return const Center(
           child: Text('No data to display for the selected filters.',
               style: TextStyle(color: Colors.white70)));
@@ -672,7 +839,7 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildPieChart() {
-    if (_filteredEnrollments.isEmpty) {
+    if ((_selectedDataSet == DataSetType.enrollments && _filteredEnrollments.isEmpty) || (_selectedDataSet == DataSetType.employees && _filteredEmployees.isEmpty)) {
       return const Center(
           child: Text('No data to display for the selected filters.',
               style: TextStyle(color: Colors.white70)));
@@ -696,9 +863,8 @@ class _DashboardState extends State<Dashboard> {
     ];
 
     groupedData.forEach((key, value) {
-      final isTouched = false; 
-      final fontSize = isTouched ? 18.0 : 14.0;
-      final radius = isTouched ? 110.0 : 100.0;
+      final fontSize = 14.0;
+      final radius = 100.0;
       final percentage = (value / totalEnrollment * 100);
 
       sections.add(PieChartSectionData(
@@ -720,11 +886,6 @@ class _DashboardState extends State<Dashboard> {
 
     return PieChart(
       PieChartData(
-        pieTouchData: PieTouchData(
-          touchCallback: (FlTouchEvent event, pieTouchResponse) {
-            // Here you could handle touch events to show more details
-          },
-        ),
         borderData: FlBorderData(show: false),
         sectionsSpace: 2,
         centerSpaceRadius: 40,

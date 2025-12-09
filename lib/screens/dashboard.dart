@@ -1,23 +1,16 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:multiselect_field/multiselect_field.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:csv/csv.dart';
 import 'dart:convert';
-
-class Car {
-  final int id;
-  final double price;
-  final int year;
-
-  Car(this.id, this.price, this.year);
-}
+import 'package:gender_hack/models/enrollment_data.dart';
 
 class Dashboard extends StatefulWidget {
   final bool isPrimary;
   const Dashboard({
     super.key,
-    this.isPrimary = true, // Default to true for standalone usage
+    this.isPrimary = true, 
   });
 
   @override
@@ -25,7 +18,19 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  List<Map<String, dynamic>> _jsonData = [];
+  List<EnrollmentData> _allEnrollments = [];
+  List<EnrollmentData> _filteredEnrollments = [];
+
+  
+  String? _selectedYear;
+  String? _selectedRegion;
+  String? _selectedGender;
+  String? _selectedCourseType;
+
+  final List<String> _years = [];
+  final List<String> _regions = [];
+  final List<String> _genders = [];
+  final List<String> _courseTypes = [];
 
   @override
   void initState() {
@@ -36,15 +41,40 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Future<void> _loadJsonData() async {
-    // Assuming your json file is in the same directory and has the same name, with a .json extension
     final String rawData =
         await rootBundle.loadString("assets/data/uni_subsbho.json");
     final List<dynamic> listData = json.decode(rawData) as List<dynamic>;
+    final enrollments =
+        listData.map((item) => EnrollmentData.fromJson(item)).toList();
+
+    _years.addAll(enrollments.map((e) => e.academicYear).toSet().toList()..sort());
+    _regions.addAll(enrollments.map((e) => e.region).toSet().toList()..sort());
+    _genders.addAll(enrollments.map((e) => e.gender).toSet().toList()..sort());
+    _courseTypes.addAll(enrollments.map((e) => e.courseType).toSet().toList()..sort());
+
     setState(() {
-      _jsonData = listData.map((item) {
-        return item as Map<String, dynamic>;
-      }).toList();
+      _allEnrollments = enrollments;
+      _filteredEnrollments = enrollments;
     });
+  }
+
+  void _applyFilters() {
+    List<EnrollmentData> filtered = _allEnrollments;
+
+    if (_selectedYear != null) {
+      filtered = filtered.where((e) => e.academicYear == _selectedYear).toList();
+    }
+    if (_selectedRegion != null) {
+      filtered = filtered.where((e) => e.region == _selectedRegion).toList();
+    }
+    if (_selectedGender != null) {
+      filtered = filtered.where((e) => e.gender == _selectedGender).toList();
+    }
+    if (_selectedCourseType != null) {
+      filtered =
+          filtered.where((e) => e.courseType == _selectedCourseType).toList();
+    }
+    setState(() => _filteredEnrollments = filtered);
   }
 
   @override
@@ -78,9 +108,8 @@ class _DashboardState extends State<Dashboard> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                      padding: const EdgeInsets.all(16.0),
                       width: width * 0.9,
-                      height: height * 0.25,
+                      padding: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(30),
                         gradient: LinearGradient(
@@ -88,42 +117,100 @@ class _DashboardState extends State<Dashboard> {
                             const Color.fromRGBO(156, 39, 176, 0.3),
                             const Color.fromRGBO(0, 0, 0, 0.4),
                           ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
                         ),
                         border: Border.all(
                             color: const Color.fromRGBO(156, 39, 176, 0.5)),
                       ),
-                      child: MultiSelectField<Car>(
-                          data: () => [
-                                Choice<Car>('Ferrari', '488 GTB',
-                                    metadata: Car(101, 25.000, 2020)),
-                                Choice<Car>('2', '488 GTB',
-                                    metadata: Car(103, 27.500, 2015)),
-                                Choice<Car>('3', '458 Italia',
-                                    metadata: Car(99, 22.000, 2009)),
-                                Choice<Car>('4', 'Portofino',
-                                    metadata: Car(105, 31.000, 2017)),
-                                Choice<Car>('5', 'California T',
-                                    metadata: Car(102, 25.000, 2016)),
-                                Choice<Car>('6', 'F8 Tributo',
-                                    metadata: Car(104, 30.000, 2019)),
-                              ],
-                              defaultData: [],
-                          useTextFilter:
-                              true, // Enables real-time text filtering
-                          onSelect: (List<Choice<Car>> selectedItems,
-                              isFromDefaulData) {
-                            // You can handle the selected items here.
-                            // For example, print the metadata of the selected cars.
-                            for (var item in selectedItems) {
-                              if (item.metadata != null) {
-                                print(
-                                    'Selected Car: ${item.metadata!.id} - ${item.metadata!.price} - ${item.metadata!.year}');
-                              }
-                            }
-                          })),
-                          SizedBox(height: 20,),
+                      child: Column(
+                        children: [
+                          const Text('Filter Enrollments',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 8.0,
+                            children: [
+                              _buildFilterDropdown(_years, 'Year', _selectedYear,
+                                  (val) => setState(() => _selectedYear = val)),
+                              _buildFilterDropdown(_regions, 'Region',
+                                  _selectedRegion, (val) => setState(() => _selectedRegion = val)),
+                              _buildFilterDropdown(_genders, 'Gender',
+                                  _selectedGender, (val) => setState(() => _selectedGender = val)),
+                              _buildFilterDropdown(
+                                  _courseTypes,
+                                  'Course Type',
+                                  _selectedCourseType,
+                                  (val) => setState(() => _selectedCourseType = val)),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _applyFilters,
+                            icon: const Icon(Icons.search, color: Colors.white),
+                            label: const Text('Apply Filters',
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.purple,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedYear = null;
+                                _selectedRegion = null;
+                                _selectedGender = null;
+                                _selectedCourseType = null;
+                                _filteredEnrollments = _allEnrollments;
+                              });
+                            },
+                            child: const Text(
+                              'Clear Filters',
+                              style: TextStyle(color: Colors.white70, fontSize: 13),
+                            ),
+                          )
+                        ],
+                      )),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor: WidgetStateColor.resolveWith(
+                            (states) => Colors.purple.withOpacity(0.3)),
+                        columns: [
+                          'Academic Year', 'Region', 'Gender', 'Course Type', 'Enrolled'
+                        ].map((key) => DataColumn(
+                                  label: Text(
+                                    key,
+                                    style: const TextStyle(
+                                        fontStyle: FontStyle.italic,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ))
+                            .toList(),
+                        rows: _filteredEnrollments
+                            .map((row) => DataRow(
+                                  cells: [
+                                    DataCell(Text(row.academicYear, style: const TextStyle(color: Colors.white))),
+                                    DataCell(Text(row.region, style: const TextStyle(color: Colors.white))),
+                                    DataCell(Text(row.gender, style: const TextStyle(color: Colors.white))),
+                                    DataCell(Text(row.courseType, style: const TextStyle(color: Colors.white))),
+                                    DataCell(Text(row.enrolled.toString(), style: const TextStyle(color: Colors.white))),
+                                  ],
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  const SizedBox(height: 40),
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     width: width * 0.9,
@@ -212,10 +299,10 @@ class _DashboardState extends State<Dashboard> {
                   ),
                   const SizedBox(height: 16),
                   ...goals.map((goal) => GoalProgressTile(goal: goal)),
-                  if (_jsonData.isNotEmpty) ...[
+                  if (_filteredEnrollments.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     const Text(
-                      'Pioneers in Tech',
+                      'Enrollment Data',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -223,42 +310,44 @@ class _DashboardState extends State<Dashboard> {
                         fontFamily: 'Roboto',
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingRowColor: WidgetStateColor.resolveWith(
-                            (states) => Colors.purple.withOpacity(0.3)),
-                        columns: _jsonData[0]
-                            .keys
-                            .map((key) => DataColumn(
-                                  label: Text(
-                                    key,
-                                    style: const TextStyle(
-                                        fontStyle: FontStyle.italic,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ))
-                            .toList(),
-                        rows: _jsonData
-                            .map((row) => DataRow(
-                                  cells: row
-                                      .values
-                                      .map((cell) => DataCell(Text(
-                                          cell.toString(),
-                                          style: const TextStyle(
-                                              color: Colors.white))))
-                                      .toList(),
-                                ))
-                            .toList(),
-                      ),
-                    ),
+                    const SizedBox(height: 8),
+                    Text('Showing ${_filteredEnrollments.length} of ${_allEnrollments.length} records', style: TextStyle(color: Colors.white70)),
                   ],
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterDropdown(List<String> items, String hint, String? value,
+      void Function(String?)? onChanged) {
+        double width = MediaQuery.of(context).size.width;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      width: width * 0.3,
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          value: value,
+          isDense: true,
+          hint: Text(hint, style: const TextStyle(color: Colors.white70, overflow: TextOverflow.fade)),
+          dropdownColor: Colors.grey[850],
+          style: const TextStyle(color: Colors.white, overflow: TextOverflow.fade, fontSize: 13),
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+          items: items.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: onChanged,
         ),
       ),
     );

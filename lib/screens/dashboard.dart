@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -10,27 +8,36 @@ class Dashboard extends StatefulWidget {
   final bool isPrimary;
   const Dashboard({
     super.key,
-    this.isPrimary = true, 
+    this.isPrimary = true,
   });
 
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
+enum DataView { table, bar, pie }
+enum Grouping { year, region, gender, courseType, facoulty }
+
 class _DashboardState extends State<Dashboard> {
   List<EnrollmentData> _allEnrollments = [];
   List<EnrollmentData> _filteredEnrollments = [];
 
-  
+  Set<DataView> _selectedView = {DataView.table};
+  Grouping _selectedGrouping = Grouping.gender;
+
   String? _selectedYear;
   String? _selectedRegion;
   String? _selectedGender;
   String? _selectedCourseType;
+  String? _selectedFacoulty;
 
   final List<String> _years = [];
   final List<String> _regions = [];
   final List<String> _genders = [];
   final List<String> _courseTypes = [];
+  final List<String> _facoulties = [];
+
+  int? _touchedBarIndex;
 
   @override
   void initState() {
@@ -47,14 +54,19 @@ class _DashboardState extends State<Dashboard> {
     final enrollments =
         listData.map((item) => EnrollmentData.fromJson(item)).toList();
 
-    _years.addAll(enrollments.map((e) => e.academicYear).toSet().toList()..sort());
+    _years.addAll(
+        enrollments.map((e) => e.academicYear).toSet().toList()..sort());
     _regions.addAll(enrollments.map((e) => e.region).toSet().toList()..sort());
     _genders.addAll(enrollments.map((e) => e.gender).toSet().toList()..sort());
-    _courseTypes.addAll(enrollments.map((e) => e.courseType).toSet().toList()..sort());
+    _courseTypes
+        .addAll(enrollments.map((e) => e.courseType).toSet().toList()..sort());
+    _facoulties
+        .addAll(enrollments.map((e) => e.facoulty).toSet().toList()..sort());
 
     setState(() {
       _allEnrollments = enrollments;
       _filteredEnrollments = enrollments;
+      _selectedFacoulty = null;
     });
   }
 
@@ -62,7 +74,8 @@ class _DashboardState extends State<Dashboard> {
     List<EnrollmentData> filtered = _allEnrollments;
 
     if (_selectedYear != null) {
-      filtered = filtered.where((e) => e.academicYear == _selectedYear).toList();
+      filtered =
+          filtered.where((e) => e.academicYear == _selectedYear).toList();
     }
     if (_selectedRegion != null) {
       filtered = filtered.where((e) => e.region == _selectedRegion).toList();
@@ -74,7 +87,45 @@ class _DashboardState extends State<Dashboard> {
       filtered =
           filtered.where((e) => e.courseType == _selectedCourseType).toList();
     }
+    if (_selectedFacoulty != null) {
+      filtered =
+          filtered.where((e) => e.facoulty == _selectedFacoulty).toList();
+    }
     setState(() => _filteredEnrollments = filtered);
+  }
+
+  Map<String, int> _getGroupedData() {
+    final Map<String, int> groupedData = {};
+
+    for (var entry in _filteredEnrollments) {
+      String key;
+      switch (_selectedGrouping) {
+        case Grouping.year:
+          key = entry.academicYear;
+          break;
+        case Grouping.region:
+          key = entry.region;
+          break;
+        case Grouping.gender:
+          key = entry.gender;
+          break;
+        case Grouping.courseType:
+          key = entry.courseType;
+          break;
+        case Grouping.facoulty:
+          key = entry.facoulty;
+          break;
+      }
+      groupedData.update(key, (value) => value + entry.enrolled,
+          ifAbsent: () => entry.enrolled);
+    }
+    return groupedData;
+  }
+
+  String _getGroupingName(Grouping grouping) {
+    final name = grouping.toString().split('.').last;
+    return name.replaceAllMapped(
+        RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}').trimLeft();
   }
 
   @override
@@ -133,17 +184,35 @@ class _DashboardState extends State<Dashboard> {
                             spacing: 8.0,
                             runSpacing: 8.0,
                             children: [
-                              _buildFilterDropdown(_years, 'Year', _selectedYear,
+                              _buildFilterDropdown(
+                                  _years,
+                                  'Year',
+                                  _selectedYear,
                                   (val) => setState(() => _selectedYear = val)),
-                              _buildFilterDropdown(_regions, 'Region',
-                                  _selectedRegion, (val) => setState(() => _selectedRegion = val)),
-                              _buildFilterDropdown(_genders, 'Gender',
-                                  _selectedGender, (val) => setState(() => _selectedGender = val)),
+                              _buildFilterDropdown(
+                                  _regions,
+                                  'Region',
+                                  _selectedRegion,
+                                  (val) =>
+                                      setState(() => _selectedRegion = val)),
+                              _buildFilterDropdown(
+                                  _genders,
+                                  'Gender',
+                                  _selectedGender,
+                                  (val) =>
+                                      setState(() => _selectedGender = val)),
                               _buildFilterDropdown(
                                   _courseTypes,
                                   'Course Type',
                                   _selectedCourseType,
-                                  (val) => setState(() => _selectedCourseType = val)),
+                                  (val) => setState(
+                                      () => _selectedCourseType = val)),
+                              _buildFilterDropdown(
+                                  _facoulties,
+                                  'Facoulty',
+                                  _selectedFacoulty,
+                                  (val) =>
+                                      setState(() => _selectedFacoulty = val)),
                             ],
                           ),
                           const SizedBox(height: 16),
@@ -166,12 +235,15 @@ class _DashboardState extends State<Dashboard> {
                                 _selectedRegion = null;
                                 _selectedGender = null;
                                 _selectedCourseType = null;
+                                _selectedFacoulty = null;
                                 _filteredEnrollments = _allEnrollments;
+                                _touchedBarIndex = -1;
                               });
                             },
                             child: const Text(
                               'Clear Filters',
-                              style: TextStyle(color: Colors.white70, fontSize: 13),
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 13),
                             ),
                           )
                         ],
@@ -179,126 +251,6 @@ class _DashboardState extends State<Dashboard> {
                   const SizedBox(
                     height: 20,
                   ),
-                  const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingRowColor: WidgetStateColor.resolveWith(
-                            (states) => Colors.purple.withOpacity(0.3)),
-                        columns: [
-                          'Academic Year', 'Region', 'Gender', 'Course Type', 'Enrolled'
-                        ].map((key) => DataColumn(
-                                  label: Text(
-                                    key,
-                                    style: const TextStyle(
-                                        fontStyle: FontStyle.italic,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ))
-                            .toList(),
-                        rows: _filteredEnrollments
-                            .map((row) => DataRow(
-                                  cells: [
-                                    DataCell(Text(row.academicYear, style: const TextStyle(color: Colors.white))),
-                                    DataCell(Text(row.region, style: const TextStyle(color: Colors.white))),
-                                    DataCell(Text(row.gender, style: const TextStyle(color: Colors.white))),
-                                    DataCell(Text(row.courseType, style: const TextStyle(color: Colors.white))),
-                                    DataCell(Text(row.enrolled.toString(), style: const TextStyle(color: Colors.white))),
-                                  ],
-                                ))
-                            .toList(),
-                      ),
-                    ),
-                  const SizedBox(height: 40),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    width: width * 0.9,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color.fromRGBO(156, 39, 176, 0.3),
-                          const Color.fromRGBO(0, 0, 0, 0.4),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      border: Border.all(
-                          color: const Color.fromRGBO(156, 39, 176, 0.5)),
-                    ),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Weekly Progress',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          height: height * 0.25,
-                          child: widget.isPrimary
-                              ? LineChart(
-                                  LineChartData(
-                                    gridData: FlGridData(show: false),
-                                    titlesData: FlTitlesData(show: false),
-                                    borderData: FlBorderData(show: false),
-                                    lineBarsData: [
-                                      LineChartBarData(
-                                        spots: chartData,
-                                        isCurved: true,
-                                        color: Colors.purpleAccent,
-                                        barWidth: 4,
-                                        isStrokeCapRound: true,
-                                        dotData: FlDotData(show: false),
-                                        belowBarData: BarAreaData(
-                                          show: true,
-                                          color: const Color.fromRGBO(
-                                              156, 39, 176, 0.3),
-                                        ),
-                                      ),
-                                    ],
-                                    lineTouchData: LineTouchData(
-                                      enabled: true,
-                                      touchTooltipData: LineTouchTooltipData(
-                                        getTooltipItems: (touchedSpots) {
-                                          return touchedSpots.map((spot) {
-                                            return LineTooltipItem(
-                                              '${spot.y.toStringAsFixed(1)} points',
-                                              const TextStyle(
-                                                  color: Colors.white),
-                                            );
-                                          }).toList();
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  duration: const Duration(milliseconds: 1000),
-                                  curve: Curves.easeInOut,
-                                )
-                              : const Center(
-                                  child: Icon(Icons.show_chart,
-                                      color: Colors.purpleAccent, size: 48)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Your Goals',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Roboto',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ...goals.map((goal) => GoalProgressTile(goal: goal)),
                   if (_filteredEnrollments.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     const Text(
@@ -311,7 +263,178 @@ class _DashboardState extends State<Dashboard> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('Showing ${_filteredEnrollments.length} of ${_allEnrollments.length} records', style: TextStyle(color: Colors.white70)),
+                    Text(
+                        'Showing ${_filteredEnrollments.length} of ${_allEnrollments.length} records',
+                        style: TextStyle(color: Colors.white70)),
+                    const SizedBox(height: 16),
+                    SegmentedButton<DataView>(
+                      segments: const <ButtonSegment<DataView>>[
+                        ButtonSegment<DataView>(
+                            value: DataView.table,
+                            label: Text('Table'),
+                            icon: Icon(Icons.table_rows)),
+                        ButtonSegment<DataView>(
+                            value: DataView.bar,
+                            label: Text('Bar Chart'),
+                            icon: Icon(Icons.bar_chart)),
+                        ButtonSegment<DataView>(
+                            value: DataView.pie,
+                            label: Text('Pie Chart'),
+                            icon: Icon(Icons.pie_chart)),
+                      ],
+                      selected: _selectedView,
+                      onSelectionChanged: (Set<DataView> newSelection) {
+                        setState(() {
+                          _selectedView = newSelection;
+                        });
+                      },
+                      style: SegmentedButton.styleFrom(
+                        backgroundColor: Colors.grey[800],
+                        foregroundColor: Colors.white,
+                        selectedForegroundColor: Colors.white,
+                        selectedBackgroundColor: Colors.purple,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      child: _buildDataView(),
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SizeTransition(
+                            sizeFactor: animation,
+                            axis: Axis.vertical,
+                            child: child,
+                          ),
+                        );
+                      },
+                    ),
+                    if (_selectedView.first != DataView.table) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Group by: ',
+                              style: TextStyle(color: Colors.white)),
+                          Container(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 12.0),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[800],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<Grouping>(
+                                value: _selectedGrouping,
+                                dropdownColor: Colors.grey[850],
+                                style: const TextStyle(color: Colors.white),
+                                icon: const Icon(Icons.arrow_drop_down,
+                                    color: Colors.white),
+                                items: Grouping.values
+                                    .map((group) => DropdownMenuItem(
+                                        value: group,
+                                        child: Text(_getGroupingName(group))))
+                                    .toList(),
+                                onChanged: (val) =>
+                                    setState(() => _selectedGrouping = val!),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 100),
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      width: width * 0.9,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color.fromRGBO(156, 39, 176, 0.3),
+                            const Color.fromRGBO(0, 0, 0, 0.4),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        border: Border.all(
+                            color: const Color.fromRGBO(156, 39, 176, 0.5)),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Weekly Progress',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            height: height * 0.25,
+                            child: widget.isPrimary
+                                ? LineChart(
+                                    LineChartData(
+                                      gridData: FlGridData(show: false),
+                                      titlesData: FlTitlesData(show: false),
+                                      borderData: FlBorderData(show: false),
+                                      lineBarsData: [
+                                        LineChartBarData(
+                                          spots: chartData,
+                                          isCurved: true,
+                                          color: Colors.purpleAccent,
+                                          barWidth: 4,
+                                          isStrokeCapRound: true,
+                                          dotData: FlDotData(show: false),
+                                          belowBarData: BarAreaData(
+                                            show: true,
+                                            color: const Color.fromRGBO(
+                                                156, 39, 176, 0.3),
+                                          ),
+                                        ),
+                                      ],
+                                      lineTouchData: LineTouchData(
+                                        enabled: true,
+                                        touchTooltipData: LineTouchTooltipData(
+                                          getTooltipItems: (touchedSpots) {
+                                            return touchedSpots.map((spot) {
+                                              return LineTooltipItem(
+                                                '${spot.y.toStringAsFixed(1)} points',
+                                                const TextStyle(
+                                                    color: Colors.white),
+                                              );
+                                            }).toList();
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    duration:
+                                        const Duration(milliseconds: 1000),
+                                    curve: Curves.easeInOut,
+                                  )
+                                : const Center(
+                                    child: Icon(Icons.show_chart,
+                                        color: Colors.purpleAccent, size: 48)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Your Goals',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Roboto',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ...goals.map((goal) => GoalProgressTile(goal: goal)),
                   ],
                 ],
               ),
@@ -322,9 +445,27 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+  Widget _buildDataView() {
+    switch (_selectedView.first) {
+      case DataView.table:
+        return SingleChildScrollView(
+            key: const ValueKey('datatable'),
+            scrollDirection: Axis.horizontal,
+            child: _buildDataTable());
+      case DataView.bar:
+        return SizedBox(
+            key: const ValueKey('barchart'),
+            height: 300,
+            child: _buildBarChart());
+      case DataView.pie:
+        return SizedBox(
+            key: const ValueKey('piechart'), height: 300, child: _buildPieChart());
+    }
+  }
+
   Widget _buildFilterDropdown(List<String> items, String hint, String? value,
       void Function(String?)? onChanged) {
-        double width = MediaQuery.of(context).size.width;
+    double width = MediaQuery.of(context).size.width;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       width: width * 0.3,
@@ -337,9 +478,12 @@ class _DashboardState extends State<Dashboard> {
           isExpanded: true,
           value: value,
           isDense: true,
-          hint: Text(hint, style: const TextStyle(color: Colors.white70, overflow: TextOverflow.fade)),
+          hint: Text(hint,
+              style: const TextStyle(
+                  color: Colors.white70, overflow: TextOverflow.fade)),
           dropdownColor: Colors.grey[850],
-          style: const TextStyle(color: Colors.white, overflow: TextOverflow.fade, fontSize: 13),
+          style: const TextStyle(
+              color: Colors.white, overflow: TextOverflow.fade, fontSize: 13),
           icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
           items: items.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
@@ -349,6 +493,207 @@ class _DashboardState extends State<Dashboard> {
           }).toList(),
           onChanged: onChanged,
         ),
+      ),
+    );
+  }
+
+  Widget _buildDataTable() {
+    return DataTable(
+      headingRowColor: WidgetStateColor.resolveWith(
+          (states) => Colors.purple.withOpacity(0.3)),
+      columns: [
+        'Academic Year',
+        'Region',
+        'Gender',
+        'Course Type',
+        'Facoulty',
+        'Enrolled'
+      ]
+          .map((key) => DataColumn(
+                label: Text(
+                  key,
+                  style: const TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
+                ),
+              ))
+          .toList(),
+      rows: _filteredEnrollments
+          .map((row) => DataRow(
+                cells: [
+                  DataCell(Text(row.academicYear,
+                      style: const TextStyle(color: Colors.white))),
+                  DataCell(Text(row.region,
+                      style: const TextStyle(color: Colors.white))),
+                  DataCell(Text(row.gender,
+                      style: const TextStyle(color: Colors.white))),
+                  DataCell(Text(row.courseType,
+                      style: const TextStyle(color: Colors.white))),
+                  DataCell(Text(row.facoulty,
+                      style: const TextStyle(color: Colors.white))),
+                  DataCell(Text(row.enrolled.toString(),
+                      style: const TextStyle(color: Colors.white))),
+                ],
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildBarChart() {
+    if (_filteredEnrollments.isEmpty) {
+      return const Center(
+          child: Text('No data to display for the selected filters.',
+              style: TextStyle(color: Colors.white70)));
+    }
+
+    final groupedData = _getGroupedData();
+
+    final List<BarChartGroupData> barGroups = [];
+    final bool isCrowded = groupedData.length > 5;
+    int i = 0;
+    groupedData.forEach((key, total) {
+      barGroups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: [
+            BarChartRodData(
+              toY: total.toDouble(),
+              gradient: const LinearGradient(
+                colors: [Colors.purpleAccent, Colors.deepPurpleAccent],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ),
+              width: 20,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ],
+        ),
+      );
+      i++;
+    });
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        barGroups: barGroups,
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              if (!isCrowded) return null;
+              final String key = groupedData.keys.elementAt(group.x);
+              final int value = rod.toY.toInt();
+              return BarTooltipItem(
+                '$key\n$value',
+                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              );
+            },
+          ),
+          touchCallback: (FlTouchEvent event, barTouchResponse) {
+            setState(() {
+              if (!event.isInterestedForInteractions ||
+                  barTouchResponse == null ||
+                  barTouchResponse.spot == null) {
+                _touchedBarIndex = -1;
+                return;
+              }
+              _touchedBarIndex = barTouchResponse.spot!.touchedBarGroupIndex;
+            });
+          },
+        ),
+        gridData: FlGridData(show: false),
+        borderData: FlBorderData(show: false),
+        titlesData: FlTitlesData(
+          leftTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: !isCrowded,
+              getTitlesWidget: (double value, TitleMeta meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < groupedData.keys.length) {
+                  final isTouched = index == _touchedBarIndex;
+                  return SideTitleWidget(
+                    meta: meta,
+                    child: Text(groupedData.keys.elementAt(index),
+                        style: TextStyle(
+                            color: isTouched ? Colors.purpleAccent : Colors.white,
+                            fontSize: 10)),
+                  );
+                }
+                return Container();
+              },
+              reservedSize: 40,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPieChart() {
+    if (_filteredEnrollments.isEmpty) {
+      return const Center(
+          child: Text('No data to display for the selected filters.',
+              style: TextStyle(color: Colors.white70)));
+    }
+
+    final groupedData = _getGroupedData();
+    final totalEnrollment =
+        groupedData.values.fold(0, (sum, item) => sum + item);
+
+    final List<PieChartSectionData> sections = [];
+    int i = 0;
+    final List<Color> colors = [
+      Colors.purple,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.red,
+      Colors.teal,
+      Colors.pink,
+      Colors.amber,
+    ];
+
+    groupedData.forEach((key, value) {
+      final isTouched = false; 
+      final fontSize = isTouched ? 18.0 : 14.0;
+      final radius = isTouched ? 110.0 : 100.0;
+      final percentage = (value / totalEnrollment * 100);
+
+      sections.add(PieChartSectionData(
+        color: colors[i % colors.length],
+        value: value.toDouble(),
+        title: '${percentage.toStringAsFixed(1)}%',
+        radius: radius,
+        titleStyle: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
+        ),
+        badgeWidget: _ChartBadge(key, color: colors[i % colors.length]),
+        badgePositionPercentageOffset: .98,
+      ));
+      i++;
+    });
+
+    return PieChart(
+      PieChartData(
+        pieTouchData: PieTouchData(
+          touchCallback: (FlTouchEvent event, pieTouchResponse) {
+            // Here you could handle touch events to show more details
+          },
+        ),
+        borderData: FlBorderData(show: false),
+        sectionsSpace: 2,
+        centerSpaceRadius: 40,
+        sections: sections,
       ),
     );
   }
@@ -420,6 +765,41 @@ class GoalProgressTile extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ChartBadge extends StatelessWidget {
+  const _ChartBadge(
+    this.label, {
+    required this.color,
+  });
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: PieChart.defaultDuration,
+      width: 80,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.circular(5),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withOpacity(.4),
+            offset: const Offset(3, 3),
+            blurRadius: 3,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(5),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
       ),
     );
   }

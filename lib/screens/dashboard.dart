@@ -194,32 +194,40 @@ class _DashboardState extends State<Dashboard> {
                               _buildFilterDropdown(
                                   _years,
                                   'Year',
-                                  _selectedYear,
-                                  (val) => setState(() => _selectedYear = val)),
+                                  _selectedYear, (val) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  setState(() => _selectedYear = val);
+                                });
+                              }),
                               _buildFilterDropdown(
                                   _regions,
                                   'Region',
-                                  _selectedRegion,
-                                  (val) =>
-                                      setState(() => _selectedRegion = val)),
+                                  _selectedRegion, (val) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  setState(() => _selectedRegion = val);
+                                });
+                              }),
                               _buildFilterDropdown(
                                   _genders,
                                   'Gender',
-                                  _selectedGender,
-                                  (val) =>
-                                      setState(() => _selectedGender = val)),
+                                  _selectedGender, (val) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  setState(() => _selectedGender = val);
+                                });
+                              }),
                               _buildFilterDropdown(
                                   _courseTypes,
                                   'Course Type',
-                                  _selectedCourseType,
-                                  (val) => setState(
-                                      () => _selectedCourseType = val)),
+                                  _selectedCourseType, (val) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  setState(() => _selectedCourseType = val);
+                                });
+                              }),
                               _buildFilterDropdown(
                                   _facoulties,
                                   'Facoulty',
                                   _selectedFacoulty,
-                                  (val) =>
-                                      setState(() => _selectedFacoulty = val)),
+                                  (val) => setState(() => _selectedFacoulty = val)),
                             ],
                           ),
                           const SizedBox(height: 16),
@@ -343,8 +351,11 @@ class _DashboardState extends State<Dashboard> {
                                         value: group,
                                         child: Text(_getGroupingName(group))))
                                     .toList(),
-                                onChanged: (val) =>
-                                    setState(() => _selectedGrouping = val!),
+                                onChanged: (val) {
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    setState(() => _selectedGrouping = val!);
+                                  });
+                                },
                               ),
                             ),
                           ),
@@ -606,49 +617,53 @@ class _DashboardState extends State<Dashboard> {
       i++;
     });
 
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        barTouchData: BarTouchData(
-          touchTooltipData: BarTouchTooltipData(
-            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              if (groupedData.length > 5) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 40, bottom: 10),
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          barTouchData: BarTouchData(
+            touchTooltipData: BarTouchTooltipData(
+              getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final key = groupedData.keys.elementAt(group.x);
                 final value = rod.toY.toInt();
                 return BarTooltipItem(
                   '$key\n$value',
-                  const TextStyle(color: Colors.white),
+                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 );
-              }
-              return null;
-            },
-          ),
-        ),
-        barGroups: barGroups,
-        gridData: FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(
-          leftTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: groupedData.length <= 5,
-              getTitlesWidget: (double value, TitleMeta meta) {
-                final index = value.toInt();
-                if (index >= 0 && index < groupedData.keys.length) {
-                  return SideTitleWidget(
-                    meta: meta,
-                    child: Text(groupedData.keys.elementAt(index), style: const TextStyle(
-                                color: Colors.white, fontSize: 14, overflow: TextOverflow.fade)),
-                  );
-                }
-                return Container();
               },
-              reservedSize: 30,
+            ),
+          ),
+          barGroups: barGroups,
+          gridData: const FlGridData(show: false),
+          borderData: FlBorderData(show: false),
+          titlesData: FlTitlesData(
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 65,
+              ),
+            ),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: groupedData.length <= 5,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  final index = value.toInt();
+                  if (index >= 0 && index < groupedData.keys.length) {
+                    return SideTitleWidget(
+                      meta: meta,
+                      child: Text(groupedData.keys.elementAt(index), style: const TextStyle(
+                                  color: Colors.white, fontSize: 14, overflow: TextOverflow.fade)),
+                    );
+                  }
+                  return Container();
+                },
+                reservedSize: 30,
+              ),
             ),
           ),
         ),

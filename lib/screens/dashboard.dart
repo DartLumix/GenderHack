@@ -37,12 +37,19 @@ class _DashboardState extends State<Dashboard> {
   final List<String> _courseTypes = [];
   final List<String> _facoulties = [];
 
-  int? _touchedBarIndex;
-
   @override
   void initState() {
     super.initState();
     if (widget.isPrimary) {
+      _loadJsonData();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant Dashboard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isPrimary && !oldWidget.isPrimary && _allEnrollments.isEmpty) {
+      // Reload data if we are coming back to this tab and data is not loaded.
       _loadJsonData();
     }
   }
@@ -237,7 +244,6 @@ class _DashboardState extends State<Dashboard> {
                                 _selectedCourseType = null;
                                 _selectedFacoulty = null;
                                 _filteredEnrollments = _allEnrollments;
-                                _touchedBarIndex = -1;
                               });
                             },
                             child: const Text(
@@ -446,20 +452,48 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildDataView() {
-    switch (_selectedView.first) {
+    final view = _selectedView.first;
+    Widget child;
+
+    switch (view) {
       case DataView.table:
-        return SingleChildScrollView(
+        child = SingleChildScrollView(
             key: const ValueKey('datatable'),
             scrollDirection: Axis.horizontal,
             child: _buildDataTable());
+        break;
       case DataView.bar:
-        return SizedBox(
+        child = SizedBox(
             key: const ValueKey('barchart'),
             height: 300,
             child: _buildBarChart());
+        break;
       case DataView.pie:
-        return SizedBox(
-            key: const ValueKey('piechart'), height: 300, child: _buildPieChart());
+        child = SizedBox(
+            key: const ValueKey('piechart'),
+            height: 300,
+            child: _buildPieChart());
+        break;
+    }
+
+    if (view == DataView.table) {
+      return child;
+    } else {
+      return Stack(
+        children: [
+          child,
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: const Icon(Icons.fullscreen, color: Colors.white),
+              onPressed: () {
+                _openChartFullscreen();
+              },
+            ),
+          ),
+        ],
+      );
     }
   }
 
@@ -550,7 +584,6 @@ class _DashboardState extends State<Dashboard> {
     final groupedData = _getGroupedData();
 
     final List<BarChartGroupData> barGroups = [];
-    final bool isCrowded = groupedData.length > 5;
     int i = 0;
     groupedData.forEach((key, total) {
       barGroups.add(
@@ -576,32 +609,22 @@ class _DashboardState extends State<Dashboard> {
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        barGroups: barGroups,
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              if (!isCrowded) return null;
-              final String key = groupedData.keys.elementAt(group.x);
-              final int value = rod.toY.toInt();
-              return BarTooltipItem(
-                '$key\n$value',
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              );
+              if (groupedData.length > 5) {
+                final key = groupedData.keys.elementAt(group.x);
+                final value = rod.toY.toInt();
+                return BarTooltipItem(
+                  '$key\n$value',
+                  const TextStyle(color: Colors.white),
+                );
+              }
+              return null;
             },
           ),
-          touchCallback: (FlTouchEvent event, barTouchResponse) {
-            setState(() {
-              if (!event.isInterestedForInteractions ||
-                  barTouchResponse == null ||
-                  barTouchResponse.spot == null) {
-                _touchedBarIndex = -1;
-                return;
-              }
-              _touchedBarIndex = barTouchResponse.spot!.touchedBarGroupIndex;
-            });
-          },
         ),
+        barGroups: barGroups,
         gridData: FlGridData(show: false),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
@@ -613,22 +636,19 @@ class _DashboardState extends State<Dashboard> {
               const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
-              showTitles: !isCrowded,
+              showTitles: groupedData.length <= 5,
               getTitlesWidget: (double value, TitleMeta meta) {
                 final index = value.toInt();
                 if (index >= 0 && index < groupedData.keys.length) {
-                  final isTouched = index == _touchedBarIndex;
                   return SideTitleWidget(
                     meta: meta,
-                    child: Text(groupedData.keys.elementAt(index),
-                        style: TextStyle(
-                            color: isTouched ? Colors.purpleAccent : Colors.white,
-                            fontSize: 10)),
+                    child: Text(groupedData.keys.elementAt(index), style: const TextStyle(
+                                color: Colors.white, fontSize: 14, overflow: TextOverflow.fade)),
                   );
                 }
                 return Container();
               },
-              reservedSize: 40,
+              reservedSize: 30,
             ),
           ),
         ),
@@ -695,6 +715,41 @@ class _DashboardState extends State<Dashboard> {
         centerSpaceRadius: 40,
         sections: sections,
       ),
+    );
+  }
+
+  void _openChartFullscreen() {
+    final view = _selectedView.first;
+    if (view == DataView.table) return;
+
+    final String title =
+        view == DataView.bar ? 'Bar Chart' : 'Pie Chart';
+    final Widget chart =
+        view == DataView.bar ? _buildBarChart() : _buildPieChart();
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FullscreenChartPage(
+          title: title,
+          chart: chart,
+        ),
+      ),
+    );
+  }
+}
+
+class FullscreenChartPage extends StatelessWidget {
+  final String title;
+  final Widget chart;
+
+  const FullscreenChartPage({super.key, required this.title, required this.chart});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(title: Text(title), backgroundColor: Colors.purple),
+      body: Center(child: Padding(padding: const EdgeInsets.fromLTRB(16, 200, 16, 16), child: chart)),
     );
   }
 }

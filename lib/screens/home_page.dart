@@ -45,16 +45,16 @@ class _HomePageState extends State<HomePage> {
               child: const Icon(Icons.close, color: Colors.white),
               backgroundColor: Colors.purple),
           children: [
-            FloatingActionButton.small(
-              child: const Icon(Icons.edit),
+            FloatingActionButton(
+              child: const Icon(Icons.lock),
               onPressed: () {},
             ),
-            FloatingActionButton.small(
-              child: const Icon(Icons.edit),
+            FloatingActionButton(
+              child: const Icon(Icons.school),
               onPressed: () {},
             ),
-            FloatingActionButton.small(
-              child: const Icon(Icons.edit),
+            FloatingActionButton(
+              child: const Icon(Icons.search),
               onPressed: () {},
             ),
           ]),

@@ -24,6 +24,16 @@ class _CoursesState extends State<Courses> {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: Colors.black,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.popAndPushNamed(context, '/home_page'),
+        shape: const CircleBorder(),
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(
+          Icons.close,
+          color: Colors.white,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
         child: Container(
           width: width,
@@ -35,21 +45,20 @@ class _CoursesState extends State<Courses> {
               colorFilter: ColorFilter.mode(
                 Color.fromRGBO(0, 0, 0, 0.5),
                 BlendMode.darken,
-                
               ),
               opacity: 0.8,
               filterQuality: FilterQuality.low,
             ),
             // The color is removed to prevent it from showing during image load.
           ),
-
           child: Padding(
             padding: EdgeInsets.only(top: (width - width * 0.7) / 3),
-            child: ListView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [const CourseTile(), const CourseTile()],
+                  children: [const CourseTile(name: 'Ada Lovelace'), const CourseTile(name: 'Margherita Hack')],
                 ),
               ],
             ),
@@ -61,7 +70,8 @@ class _CoursesState extends State<Courses> {
 }
 
 class CourseTile extends StatelessWidget {
-  const CourseTile({super.key});
+  const CourseTile({super.key, required this.name});
+  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -98,11 +108,11 @@ class CourseTile extends StatelessWidget {
           height: width * 0.35,
           decoration: BoxDecoration(
             image: DecorationImage(
-                    image: AssetImage('assets/Ada.png'),
-                    fit: BoxFit.fitHeight,
-                    opacity: 0.6,
-                    filterQuality: FilterQuality.high,
-                  ),
+              image: AssetImage('assets/Ada.png'),
+              fit: BoxFit.fitHeight,
+              opacity: 0.6,
+              filterQuality: FilterQuality.high,
+            ),
             border: Border.all(
               color: Color.fromRGBO(241, 241, 241, 1),
               width: 0.4,
@@ -133,21 +143,20 @@ class CourseTile extends StatelessWidget {
                   height: 33,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: Color.fromRGBO(241, 241, 241, 1),
-                        width: 0.6,
-                        strokeAlign: BorderSide.strokeAlignInside,
+                      border: Border(
+                        top: BorderSide(
+                          color: Color.fromRGBO(241, 241, 241, 1),
+                          width: 0.6,
+                          strokeAlign: BorderSide.strokeAlignInside,
+                        ),
                       ),
-                    ),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
-                    ),
-                    color: Color.fromRGBO(0, 0, 0, 0.9)
-                  ),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
+                      ),
+                      color: Color.fromRGBO(0, 0, 0, 0.9)),
                   child: Text(
-                    'Ada Lovelace',
+                    name,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white, fontSize: 12),
                   ),

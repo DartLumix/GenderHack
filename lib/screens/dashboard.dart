@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class Dashboard extends StatelessWidget {
-  const Dashboard({super.key});
+  final bool isPrimary;
+  const Dashboard({
+    super.key,
+    this.isPrimary = true, // Default to true for standalone usage
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,41 +67,46 @@ class Dashboard extends StatelessWidget {
                         const SizedBox(height: 20),
                         SizedBox(
                           height: height * 0.25,
-                          child: LineChart(
-                            LineChartData(
-                              gridData: FlGridData(show: false),
-                              titlesData: FlTitlesData(show: false),
-                              borderData: FlBorderData(show: false),
-                              lineBarsData: [
-                                LineChartBarData(
-                                  spots: chartData,
-                                  isCurved: true,
-                                  color: Colors.purpleAccent,
-                                  barWidth: 4,
-                                  isStrokeCapRound: true,
-                                  dotData: FlDotData(show: false),
-                                  belowBarData: BarAreaData(
-                                    show: true,
-                                    color: const Color.fromRGBO(156, 39, 176, 0.3),
+                          child: isPrimary
+                              ? LineChart(
+                                  LineChartData(
+                                    gridData: FlGridData(show: false),
+                                    titlesData: FlTitlesData(show: false),
+                                    borderData: FlBorderData(show: false),
+                                    lineBarsData: [
+                                      LineChartBarData(
+                                        spots: chartData,
+                                        isCurved: true,
+                                        color: Colors.purpleAccent,
+                                        barWidth: 4,
+                                        isStrokeCapRound: true,
+                                        dotData: FlDotData(show: false),
+                                        belowBarData: BarAreaData(
+                                          show: true,
+                                          color: const Color.fromRGBO(
+                                              156, 39, 176, 0.3),
+                                        ),
+                                      ),
+                                    ],
+                                    lineTouchData: LineTouchData(
+                                      enabled: true,
+                                      touchTooltipData: LineTouchTooltipData(
+                                        getTooltipItems: (touchedSpots) {
+                                          return touchedSpots.map((spot) {
+                                            return LineTooltipItem(
+                                              '${spot.y.toStringAsFixed(1)} points',
+                                              const TextStyle(
+                                                  color: Colors.white),
+                                            );
+                                          }).toList();
+                                        },
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
-                              lineTouchData: LineTouchData(
-                                touchTooltipData: LineTouchTooltipData(
-                                  getTooltipItems: (touchedSpots) {
-                                    return touchedSpots.map((spot) {
-                                      return LineTooltipItem(
-                                        '${spot.y.toStringAsFixed(1)} points',
-                                        const TextStyle(color: Colors.white),
-                                      );
-                                    }).toList();
-                                  },
-                                ),
-                              ),
-                            ),
-                            duration: const Duration(milliseconds: 1000),
-                            curve: Curves.easeInOut,
-                          ),
+                                  duration: const Duration(milliseconds: 1000),
+                                  curve: Curves.easeInOut,
+                                )
+                              : const Center(child: Icon(Icons.show_chart, color: Colors.purpleAccent, size: 48)),
                         ),
                       ],
                     ),

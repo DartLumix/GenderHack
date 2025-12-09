@@ -56,7 +56,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
     _characterAlignment =
         Tween<Alignment>(
           begin: Alignment.center,
-          end: const Alignment(1.2, -0.3),
+          end: const Alignment(1.2, -0.5),
         ).animate(
           CurvedAnimation(
             parent: _characterController,
@@ -233,6 +233,7 @@ class _CourseState extends State<Course> with TickerProviderStateMixin {
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
+                          speed: const Duration(milliseconds: 350),
                         ),
                       ),
                     ),

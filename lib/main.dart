@@ -3,6 +3,7 @@ import 'screens/screens.dart';
 import 'course.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainApp());
 }
 

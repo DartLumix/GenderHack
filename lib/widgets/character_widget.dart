@@ -31,10 +31,11 @@ class CharacterWidget extends StatelessWidget {
         );
       },
       child: child ??
-          Container(
-            width: 100,
-            height: 150,
-            color: Colors.red, // Placeholder for Rive animation
+          SizedBox(
+            width: 150,
+            height: 200,
+            child: Image.asset('assets/base.png'),
+            // color: Colors.red,
           ),
     );
   }

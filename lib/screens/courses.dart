@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:gender_hack/course.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
+/// A screen displaying a list of available courses.
+///
+/// Each course is represented by a tile that navigates to the course details.
 class Courses extends StatefulWidget {
+  /// Creates a [Courses] widget.
   const Courses({super.key});
 
   @override
@@ -69,9 +73,17 @@ class _CoursesState extends State<Courses> {
   }
 }
 
+/// A tile widget representing a single course.
+///
+/// Displays the course name and an image, and handles navigation on tap.
 class CourseTile extends StatelessWidget {
-  const CourseTile({super.key, required this.name});
+  /// The name of the course/character.
   final String name;
+
+  /// Creates a [CourseTile].
+  ///
+  /// * [name]: The name to display on the tile.
+  const CourseTile({super.key, required this.name});
 
   @override
   Widget build(BuildContext context) {

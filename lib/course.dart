@@ -7,7 +7,13 @@ import 'widgets/scene_object.dart';
 import 'widgets/typewriter_text.dart';
 import 'widgets/choice_box_widget.dart';
 
+/// A widget that displays an interactive story course.
+///
+/// This screen loads a story from a JSON asset and presents it to the user
+/// step by step. It handles animations for characters, backgrounds, and text,
+/// and manages user choices.
 class Course extends StatefulWidget {
+  /// Creates a [Course] widget.
   const Course({super.key});
 
   @override

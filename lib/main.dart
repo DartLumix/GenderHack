@@ -3,6 +3,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/screens.dart';
 import 'course.dart';
 
+/// The entry point of the application.
+///
+/// This function initializes the Flutter bindings, sets up Hive for local storage,
+/// and runs the [MainApp] widget.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -11,7 +15,12 @@ void main() async {
   runApp(const MainApp());
 }
 
+/// The root widget of the application.
+///
+/// This widget sets up the [MaterialApp] with the application title,
+/// themes (implicitly via defaults), and named routes for navigation.
 class MainApp extends StatelessWidget {
+  /// Creates the [MainApp] widget.
   const MainApp({super.key});
 
   @override

@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
 
+/// A widget representing a background scene object.
+///
+/// It fades in using the provided animation and applies gradient masks
+/// to blend smoothly with the background.
 class SceneObject extends StatelessWidget {
+  /// The fade animation for the object.
   final Animation<double> fadeAnimation;
+
+  /// The alignment of the object within the scene.
   final Alignment alignment;
+
+  /// An optional child widget to display instead of the default image.
   final Widget? child;
 
+  /// Creates a [SceneObject].
+  ///
+  /// * [fadeAnimation]: Animation for opacity.
+  /// * [alignment]: Position of the object (default (-0.6, -0.8)).
+  /// * [child]: Optional custom child widget.
   const SceneObject({
     super.key,
     required this.fadeAnimation,

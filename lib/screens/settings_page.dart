@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+/// The settings page of the application.
+///
+/// Currently serves as a placeholder for app configuration options.
 class SettingsPage extends StatelessWidget {
+  /// Creates a [SettingsPage] widget.
   const SettingsPage({super.key});
 
   @override

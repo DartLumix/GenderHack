@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
 import '../models/story_step.dart';
 
+/// A widget that displays a set of choices to the user.
+///
+/// This widget appears as an overlay with buttons for each available choice.
+/// It fades in using the provided [opacity] animation.
 class ChoiceBoxWidget extends StatelessWidget {
+  /// The opacity animation for the choice box.
   final Animation<double> opacity;
+
+  /// Callback function triggered when a choice is selected.
+  ///
+  /// The argument is the index of the selected choice.
   final ValueChanged<int> onChoiceSelected;
+
+  /// The list of [StoryChoice]s to display.
   final List<StoryChoice> choices;
 
+  /// Creates a [ChoiceBoxWidget].
+  ///
+  /// * [opacity]: Animation for fade-in.
+  /// * [onChoiceSelected]: Callback for user interaction.
+  /// * [choices]: List of choices to render.
   const ChoiceBoxWidget({
     super.key,
     required this.opacity,

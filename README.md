@@ -1,68 +1,145 @@
-# Gender Hack App
+<div align="center">
 
-**An app for female students (mid-grade / high school) to find their study path without stereotypes.**
+<img src="assets/base.png" alt="Gender Hack Logo" width="120" height="170">
 
-The underlying idea is an application that supports students in choosing their study path, with the primary goal of breaking down stereotypes about personal abilities and aptitudes, focusing on STEM subjects.
+# Gender Hack
 
-## Features
+**Empowering the next generation of women in STEM.**
 
-### 1. BIG Minds' Stories
-The heart of the app is an interactive story mode. For each "course," a historical figure of reference in the STEM field is presented (e.g., Ada Lovelace, Margherita Hack).
-*   **Storytelling**: The character tells their story and guides the user in solving a micro-problem related to their invention or discovery.
-*   **Philosophy**: No punitive "wrong answers." The goal is to stimulate curiosity and convey a message of empowerment.
+![Flutter](https://img.shields.io/badge/Made%20with-Flutter-blue?style=for-the-badge&logo=flutter)
+![Dart](https://img.shields.io/badge/Language-Dart-blueviolet?style=for-the-badge&logo=dart)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=for-the-badge)
 
-### 2. Dashboard and Data Analysis
-A visual dashboard providing insights into the job market and education landscape.
-*   **Profiling**: Visually displays the student's aptitude (analytical-rational vs. pragmatic-creative).
-*   **Institutional Data**: Highlights current enrollment shortages and gender gaps in various sectors using real datasets.
-*   **Charts**: Interactive bar and pie charts to explore data by region, year, and gender.
+<p align="center">
+  <a href="#-features">Features</a> •
+  <a href="#-screenshots">Screenshots</a> •
+  <a href="#-getting-started">Getting Started</a> •
+  <a href="#-project-structure">Structure</a>
+</p>
 
-### 3. Gamification and Community
-*   **XP System**: Users collect experience points by interacting with the app.
-*   **Social**: Future features include leaderboards and "Kahoot-style" classroom challenges.
+</div>
 
-### 4. Orientation and Opportunities
-*   **Recommendations**: Directs users to high schools or universities based on their interests.
-*   **Integration**: Matches study topics with the stories covered in the app.
-*   **Incentives**: Highlights scholarships and job opportunities, especially those promoting gender equality.
+---
 
-## Project Structure
+## 💡 About The Project
 
-*   `lib/main.dart`: Entry point of the application.
-*   `lib/models/`: Data models for stories, employees, and enrollments.
-*   `lib/screens/`: UI screens (Dashboard, Profile, Courses, Story Mode).
-*   `lib/widgets/`: Reusable UI components (Character, Typewriter Text, Charts).
+**Gender Hack** is an application designed for female students (mid-grade / high school) to explore study paths free from stereotypes. The primary goal is to break down barriers regarding personal abilities and aptitudes, with a specific focus on **STEM** (Science, Technology, Engineering, and Mathematics) subjects.
 
-## Getting Started
+> **Demo:**
+>
+> ![App Demo GIF](path/to/your/demo.gif)
+> *(Place a GIF here showing the user navigating from Home to a Story)*
+
+---
+
+## 📱 Features
+
+### 1. 👩‍🔬 BIG Minds' Stories (Interactive Mode)
+The heart of the app. Users select a historical STEM figure (e.g., **Ada Lovelace**, **Margherita Hack**) and enter an interactive story.
+* **Storytelling**: The character guides the user to solve a micro-problem related to their invention.
+* **Philosophy**: No punitive "wrong answers." The goal is curiosity and empowerment.
+
+### 2. 📊 Dashboard & Data Analysis
+A visual tool providing insights into the job market and education landscape.
+* **Profiling**: Visualizes aptitude (analytical-rational vs. pragmatic-creative).
+* **Real Data**: Highlights gender gaps and enrollment statistics using real datasets.
+* **Interactive Charts**: Filter data by Year, Region, and Gender via Bar and Pie charts.
+
+### 3. 🏆 Gamification & Community
+* **XP System**: Earn experience points by completing stories and exploring data.
+* **Social**: (Coming Soon) Leaderboards and "Kahoot-style" classroom challenges.
+
+### 4. 🧭 Orientation & Opportunities
+* **Recommendations**: Directs users to schools/universities based on interests.
+* **Integration**: Matches study topics with app stories.
+* **Incentives**: Highlights scholarships and job offers promoting gender equality.
+
+---
+
+## 📸 Screenshots
+
+| Home & Menu | Story Mode | Analytics Dashboard | Profile |
+|:---:|:---:|:---:|:---:|
+| ![Home](path/to/home_screenshot.png) | ![Story](path/to/story_screenshot.png) | ![Data](path/to/dashboard_screenshot.png) | ![Profile](path/to/profile_screenshot.png) |
+| *Navigation Hub* | *Ada Lovelace Story* | *Gender Gap Charts* | *User Progress* |
+
+---
+
+## 🛠 Project Structure
+
+An overview of the key directories in the `lib` folder:
+
+```text
+lib/
+├── main.dart              # 🏁 Entry point of the application
+├── models/                # 📦 Data models (Stories, Employees, Enrollments)
+├── screens/               # 📱 UI Screens
+│   ├── dashboard.dart     # Data visualization logic
+│   ├── profile.dart       # User progress tracking
+│   ├── courses.dart       # Selection of historical figures
+│   └── story_mode.dart    # Interactive storytelling UI
+└── widgets/               # 🧩 Reusable UI components
+    ├── character.dart     # Character avatars
+    ├── typewriter.dart    # Animated text effects
+    └── charts.dart        # Custom chart widgets
+````
+
+-----
+
+## 🚀 Getting Started
+
+Follow these steps to get a local copy up and running.
 
 ### Prerequisites
-*   [Flutter SDK](https://flutter.dev/docs/get-started/install) (version >=3.3.0)
-*   Dart SDK
+
+  * [Flutter SDK](https://flutter.dev/docs/get-started/install) (version \>=3.3.0)
+  * Dart SDK
 
 ### Installation
 
-1.  **Clone the repository:**
+1.  **Clone the repository**
+
     ```bash
-    git clone <repository-url>
+    git clone [https://github.com/your-username/gender_hack.git](https://github.com/your-username/gender_hack.git)
     cd gender_hack
     ```
 
-2.  **Install dependencies:**
+2.  **Install dependencies**
+
     ```bash
     flutter pub get
     ```
 
-3.  **Run the app:**
+3.  **Run the app**
+
     ```bash
     flutter run
     ```
 
-## Usage
+-----
 
-1.  **Home**: Navigate between the Dashboard and Profile using the bottom navigation bar. Use the central FAB to access Courses.
-2.  **Courses**: Select a historical figure (e.g., Ada Lovelace) to start an interactive story.
-3.  **Dashboard**: Use filters (Year, Region, Gender) to analyze enrollment and employment data. View data in Table, Bar Chart, or Pie Chart modes.
-4.  **Profile**: Track your weekly progress and goals.
+## 🎮 Usage
 
----
-*Empowering the next generation of women in STEM.*
+1.  **Home**: Use the bottom navigation to switch between **Dashboard** and **Profile**. Tap the central button for **Courses**.
+2.  **Courses**: Tap on a character (e.g., Ada Lovelace) to start her story.
+3.  **Dashboard**: Use the filter chips (Year, Region) to update the charts. Toggle between Table, Bar, and Pie views.
+4.  **Profile**: Check your weekly XP and set new goals.
+
+-----
+
+## 🤝 Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+-----
+
+<div align="center">
+<p><i>Made with ❤️ for the Hackathon<i\><p>
+<div\>

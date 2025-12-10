@@ -42,8 +42,10 @@ class Dashboard extends StatefulWidget {
 enum DataView {
   /// Displays data in a table format.
   table,
+
   /// Displays data as a bar chart.
   bar,
+
   /// Displays data as a pie chart.
   pie,
 }
@@ -52,6 +54,7 @@ enum DataView {
 enum DataSetType {
   /// University enrollment data.
   enrollments,
+
   /// Employment data.
   employees,
 }
@@ -60,12 +63,16 @@ enum DataSetType {
 enum EnrollmentGrouping {
   /// Group by academic year.
   year,
+
   /// Group by region.
   region,
+
   /// Group by gender.
   gender,
+
   /// Group by course type.
   courseType,
+
   /// Group by faculty.
   facoulty,
 }
@@ -74,10 +81,13 @@ enum EnrollmentGrouping {
 enum EmployeeGrouping {
   /// Group by department.
   department,
+
   /// Group by institutional sector.
   sector,
+
   /// Group by gender.
   gender,
+
   /// Group by count (useful for distribution).
   count,
 }
@@ -570,10 +580,13 @@ class _DashboardState extends State<Dashboard> {
                                     style: const TextStyle(color: Colors.white),
                                     icon: const Icon(Icons.arrow_drop_down,
                                         color: Colors.white),
+                                    // in employees dont show count
                                     items: (_selectedDataSet ==
                                                 DataSetType.enrollments
                                             ? EnrollmentGrouping.values
                                             : EmployeeGrouping.values)
+                                        .where((group) =>
+                                            group != EmployeeGrouping.count)
                                         .map<DropdownMenuItem<dynamic>>(
                                           (group) => DropdownMenuItem<dynamic>(
                                               value: group,
@@ -949,10 +962,18 @@ class _DashboardState extends State<Dashboard> {
           gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
-            leftTitles: const AxisTitles(
+            leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 65,
+                // change text style
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  return Text(meta.formattedValue,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          overflow: TextOverflow.fade));
+                },
               ),
             ),
             topTitles:
@@ -961,7 +982,7 @@ class _DashboardState extends State<Dashboard> {
                 const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
-                showTitles: groupedData.length <= 5,
+                showTitles: groupedData.length <= 4,
                 getTitlesWidget: (double value, TitleMeta meta) {
                   final index = value.toInt();
                   if (index >= 0 && index < groupedData.keys.length) {
@@ -1067,6 +1088,7 @@ class _DashboardState extends State<Dashboard> {
 class FullscreenChartPage extends StatelessWidget {
   /// The title of the chart page.
   final String title;
+
   /// The chart widget to display.
   final Widget chart;
 

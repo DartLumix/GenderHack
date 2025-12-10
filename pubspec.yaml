@@ -13,6 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_expandable_fab: ^2.5.2
+  hive_flutter: ^1.1.0
   lottie: ^3.3.2
   multiselect_field: ^1.6.8
   persistent_bottom_nav_bar: ^6.2.1

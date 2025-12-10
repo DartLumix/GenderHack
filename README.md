@@ -10,7 +10,7 @@
 ![Dart](https://img.shields.io/badge/Language-Dart-blueviolet?style=for-the-badge&logo=dart)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=for-the-badge)
-![Made by](https://img.shields.io/badge/IF%20Society-Hack%20The%20Gap-blue?style=for-the-badge)
+![Made by](https://img.shields.io/badge/Made%20by-IF%20Society-red?style=for-the-badge)
 
 
 <p align="center">

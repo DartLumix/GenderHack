@@ -1,11 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+/// A text widget that animates the display of text word by word,
+/// simulating a typewriter effect.
 class TypewriterText extends StatefulWidget {
+  /// The full text string to display.
   final String text;
+
+  /// The text style to apply.
   final TextStyle style;
+
+  /// The duration between each word appearing.
   final Duration speed;
 
+  /// Creates a [TypewriterText] widget.
+  ///
+  /// * [text]: The content to animate.
+  /// * [style]: Text styling (default white, bold, size 25).
+  /// * [speed]: Animation speed (default 500ms per word).
   const TypewriterText(
     this.text, {
     super.key,

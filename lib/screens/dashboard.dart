@@ -18,8 +18,17 @@ List<EmployeeData> _parseEmployees(String rawData) {
   return listData.map((item) => EmployeeData.fromJson(item)).toList();
 }
 
+/// The main dashboard widget for visualizing data.
+///
+/// Displays charts and tables for enrollment and employee data, allowing
+/// filtering and grouping.
 class Dashboard extends StatefulWidget {
+  /// Indicates if this dashboard instance is the primary one (e.g., in the main tab).
   final bool isPrimary;
+
+  /// Creates a [Dashboard] widget.
+  ///
+  /// * [isPrimary]: If true, it initializes data loading from Hive.
   const Dashboard({
     super.key,
     this.isPrimary = true,
@@ -29,13 +38,49 @@ class Dashboard extends StatefulWidget {
   State<Dashboard> createState() => _DashboardState();
 }
 
-enum DataView { table, bar, pie }
+/// Enumerates the available types of data views.
+enum DataView {
+  /// Displays data in a table format.
+  table,
+  /// Displays data as a bar chart.
+  bar,
+  /// Displays data as a pie chart.
+  pie,
+}
 
-enum DataSetType { enrollments, employees }
+/// Enumerates the types of datasets available.
+enum DataSetType {
+  /// University enrollment data.
+  enrollments,
+  /// Employment data.
+  employees,
+}
 
-enum EnrollmentGrouping { year, region, gender, courseType, facoulty }
+/// Options for grouping enrollment data.
+enum EnrollmentGrouping {
+  /// Group by academic year.
+  year,
+  /// Group by region.
+  region,
+  /// Group by gender.
+  gender,
+  /// Group by course type.
+  courseType,
+  /// Group by faculty.
+  facoulty,
+}
 
-enum EmployeeGrouping { department, sector, gender, count }
+/// Options for grouping employee data.
+enum EmployeeGrouping {
+  /// Group by department.
+  department,
+  /// Group by institutional sector.
+  sector,
+  /// Group by gender.
+  gender,
+  /// Group by count (useful for distribution).
+  count,
+}
 
 class _DashboardState extends State<Dashboard> {
   // Data state
@@ -1018,10 +1063,17 @@ class _DashboardState extends State<Dashboard> {
   }
 }
 
+/// A screen to display a chart in full-screen mode.
 class FullscreenChartPage extends StatelessWidget {
+  /// The title of the chart page.
   final String title;
+  /// The chart widget to display.
   final Widget chart;
 
+  /// Creates a [FullscreenChartPage].
+  ///
+  /// * [title]: The app bar title.
+  /// * [chart]: The chart widget.
   const FullscreenChartPage(
       {super.key, required this.title, required this.chart});
 

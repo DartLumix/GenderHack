@@ -3,7 +3,12 @@ import 'screens.dart' as screens;
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 
+/// The main home screen of the application.
+///
+/// Contains a bottom navigation bar to switch between the Dashboard and Profile screens,
+/// and an expandable floating action button for quick actions.
 class HomePage extends StatefulWidget {
+  /// Creates a [HomePage] widget.
   const HomePage({super.key});
 
   @override

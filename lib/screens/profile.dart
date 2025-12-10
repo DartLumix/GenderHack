@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:gender_hack/screens/settings_page.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+/// A screen displaying the user's profile information.
+///
+/// Includes user avatar, bio, weekly progress chart, and goal progress.
 class Profile extends StatefulWidget {
+  /// Creates a [Profile] widget.
   const Profile({super.key});
 
   @override
@@ -226,15 +230,29 @@ class _ProfileState extends State<Profile> {
   }
 }
 
+/// Represents a user goal with its progress.
 class Goal {
+  /// The title of the goal.
   final String title;
+
+  /// The progress of the goal (0.0 to 1.0).
   final double progress;
 
+  /// Creates a [Goal].
+  ///
+  /// * [title]: The goal description.
+  /// * [progress]: The completion percentage.
   Goal({required this.title, required this.progress});
 }
 
+/// A tile widget displaying a single goal and its progress bar.
 class GoalProgressTile extends StatelessWidget {
+  /// The goal to display.
   final Goal goal;
+
+  /// Creates a [GoalProgressTile].
+  ///
+  /// * [goal]: The goal data object.
   const GoalProgressTile({super.key, required this.goal});
 
   @override

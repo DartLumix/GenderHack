@@ -62,7 +62,7 @@ A visual tool providing insights into the job market and education landscape.
 
 | Home & Menu | Story Mode | Analytics Dashboard | Profile |
 |:---:|:---:|:---:|:---:|
-| <img src="assets/demos/nav_hub.png" height="600"> | <img src="assets/demos/story.png" height="600" > | <img src="assets/demos/graphs.png" height="600" > | <img src="assets/demos/user_progress.png" height="600" > |
+| <img src="assets/demos/nav_hub.png" height="600"> | <img src="assets/demos/story.png" height="600" > | <img src="assets/demos/graphs.png" height="560" > | <img src="assets/demos/user_progress.png" height="600" > |
 
 ---
 

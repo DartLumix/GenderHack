@@ -12,7 +12,7 @@ class _FriendsState extends State<Friends> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    return Container(
+    return SizedBox(
       width: width * 0.8,
       height: height * 0.6,
       child: Column(

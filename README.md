@@ -30,8 +30,7 @@
 
 > **Demo:**
 >
-> ![App Demo GIF](path/to/your/demo.gif)
-> *(Place a GIF here showing the user navigating from Home to a Story)*
+> ![App Demo GIF](assets/demos/app.gif)
 
 ---
 
@@ -63,8 +62,7 @@ A visual tool providing insights into the job market and education landscape.
 
 | Home & Menu | Story Mode | Analytics Dashboard | Profile |
 |:---:|:---:|:---:|:---:|
-| ![Home](path/to/home_screenshot.png) | ![Story](path/to/story_screenshot.png) | ![Data](path/to/dashboard_screenshot.png) | ![Profile](path/to/profile_screenshot.png) |
-| *Navigation Hub* | *Ada Lovelace Story* | *Gender Gap Charts* | *User Progress* |
+| <img src="assets/demos/nav_hub.png" height="600"> | <img src="assets/demos/story.png" height="600" > | <img src="assets/demos/graphs.png" height="600" > | <img src="assets/demos/user_progress.png" height="600" > |
 
 ---
 

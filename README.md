@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="assets/base.png" alt="Gender Hack Logo" width="120" height="170">
+<img src="assets/base.png" alt="HackTheGapP Logo" width="120" height="170">
 
-# Gender Hack
+# HackTheGapP
 
 **Empowering the next generation of women in STEM.**
 
@@ -10,6 +10,8 @@
 ![Dart](https://img.shields.io/badge/Language-Dart-blueviolet?style=for-the-badge&logo=dart)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=for-the-badge)
+![Made by](https://img.shields.io/badge/IF%20Society-Hack%20The%20Gap-blue?style=for-the-badge)
+
 
 <p align="center">
   <a href="#-features">Features</a> •
@@ -24,7 +26,7 @@
 
 ## 💡 About The Project
 
-**Gender Hack** is an application designed for female students (mid-grade / high school) to explore study paths free from stereotypes. The primary goal is to break down barriers regarding personal abilities and aptitudes, with a specific focus on **STEM** (Science, Technology, Engineering, and Mathematics) subjects.
+**HackTheGapP** is an application designed for female students (mid-grade / high school) to explore study paths free from stereotypes. The primary goal is to break down barriers regarding personal abilities and aptitudes, with a specific focus on **STEM** (Science, Technology, Engineering, and Mathematics) subjects.
 
 > **Demo:**
 >
@@ -101,7 +103,7 @@ Follow these steps to get a local copy up and running.
 1.  **Clone the repository**
 
     ```bash
-    git clone [https://github.com/your-username/gender_hack.git](https://github.com/your-username/gender_hack.git)
+    git clone 
     cd gender_hack
     ```
 

@@ -13,6 +13,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_expandable_fab: ^2.5.2
+  flutter_launcher_icons: ^0.14.4
+  flutter_popup: ^3.3.9
+  flutter_speed_dial: ^7.0.0
   hive_flutter: ^1.1.0
   lottie: ^3.3.2
   multiselect_field: ^1.6.8
@@ -30,3 +33,8 @@ flutter:
     - assets/
     - assets/story/
     - assets/data/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo.png"

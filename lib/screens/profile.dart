@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_popup/flutter_popup.dart';
 import 'package:gender_hack/screens/settings_page.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:gender_hack/screens/friends.dart';
 
 /// A screen displaying the user's profile information.
 ///
@@ -14,6 +17,8 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  final ValueNotifier<bool> _isDialOpen = ValueNotifier(false);
+  final GlobalKey<CustomPopupState> _popUpKey = GlobalKey<CustomPopupState>();
   String _currentAvatar = 'assets/Ada.png'; // Default avatar
   final String _username = 'Ada Lovelace';
   final String _bio =
@@ -25,6 +30,12 @@ class _ProfileState extends State<Profile> {
     'assets/avatar2.png', // Placeholder, add your assets
     'assets/avatar3.png', // Placeholder, add your assets
   ];
+
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   void _showAvatarChooser(BuildContext context) {
     showModalBottomSheet(
@@ -70,6 +81,9 @@ class _ProfileState extends State<Profile> {
       Goal(title: 'Finish "Women in Tech" module', progress: 0.2),
     ];
 
+    CustomPopup popUp = CustomPopup(
+        key: _popUpKey, content: Friends(), showArrow: false, child: const Icon(Icons.people));
+
     final List<FlSpot> chartData = [
       for (int i = 0; i < 7; i++)
         FlSpot(
@@ -77,152 +91,188 @@ class _ProfileState extends State<Profile> {
           (i * 0.5) + (i % 2 == 0 ? 1 : -0.5) * (i * 0.2) + 1,
         ),
     ];
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+    bool flag = false;
+    return SafeArea(
+      child: Scaffold(
         backgroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
+        floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: SpeedDial(
+            animatedIcon: AnimatedIcons.menu_close,
+            direction: SpeedDialDirection.left,
+            curve: Curves.bounceIn,
+            backgroundColor: Colors.transparent,
+            activeBackgroundColor: const Color.fromRGBO(5, 5, 5, 1),
+            overlayColor: Colors.black,
+            overlayOpacity: 0.6,
+            spaceBetweenChildren: 10,
+            closeManually: false,
+            openCloseDial: _isDialOpen,
+            //openCloseDial: _isDialOpen,
             children: [
-              Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundImage: AssetImage(_currentAvatar),
-                    backgroundColor: Colors.grey[800],
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: () => _showAvatarChooser(context),
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Icon(Icons.edit, color: Colors.white, size: 20),
-                        ),
-                      ),
+              SpeedDialChild(
+                child: const Icon(Icons.settings),
+                backgroundColor: Colors.purple,
+                onTap: () {
+                  _isDialOpen.value = false;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingsPage(),
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
-              const SizedBox(height: 24),
-              Text(
-                _username,
-                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+              SpeedDialChild(
+                child: popUp,
+                backgroundColor: Colors.purple,
+                onTap: () {
+                  _isDialOpen.value = flag;
+                  // Add a small delay to allow the SpeedDial to close before showing the popup
+                  Future.delayed(const Duration(milliseconds: 150), () {
+                    _popUpKey.currentState?.show();
+                  });
+                },
               ),
-              const SizedBox(height: 12),
-              Text(
-                _bio,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[400], fontSize: 16),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                width: width * 0.9,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color.fromRGBO(156, 39, 176, 0.3),
-                      const Color.fromRGBO(0, 0, 0, 0.4),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  border: Border.all(
-                      color: const Color.fromRGBO(156, 39, 176, 0.5)),
-                ),
-                child: Column(
+            ],
+            onOpen: () { flag = false; print('${_isDialOpen}open'); },
+            onClose: () { flag = true; print( '${_isDialOpen}close'); },
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                Stack(
                   children: [
-                    const Text(
-                      'Weekly Progress',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Roboto',
-                      ),
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundImage: AssetImage(_currentAvatar),
+                      backgroundColor: Colors.grey[800],
                     ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      height: height * 0.25,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: FlGridData(show: false),
-                          titlesData: FlTitlesData(show: false),
-                          borderData: FlBorderData(show: false),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: chartData,
-                              isCurved: true,
-                              color: Colors.purpleAccent,
-                              barWidth: 4,
-                              isStrokeCapRound: true,
-                              dotData: FlDotData(show: false),
-                              belowBarData: BarAreaData(
-                                show: true,
-                                color: const Color.fromRGBO(
-                                    156, 39, 176, 0.3),
-                              ),
-                            ),
-                          ],
-                          lineTouchData: LineTouchData(
-                            enabled: true,
-                            touchTooltipData: LineTouchTooltipData(
-                              getTooltipItems: (touchedSpots) {
-                                return touchedSpots.map((spot) {
-                                  return LineTooltipItem(
-                                    '${spot.y.toStringAsFixed(1)} points',
-                                    const TextStyle(
-                                        color: Colors.white),
-                                  );
-                                }).toList();
-                              },
-                            ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: () => _showAvatarChooser(context),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child:
+                                Icon(Icons.edit, color: Colors.white, size: 20),
                           ),
                         ),
-                        duration:
-                            const Duration(milliseconds: 1000),
-                        curve: Curves.easeInOut,
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Your Goals',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Roboto',
+                const SizedBox(height: 24),
+                Text(
+                  _username,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold),
                 ),
-              ),
-              const SizedBox(height: 16),
-              ...goals.map((goal) => GoalProgressTile(goal: goal)),
-            ],
+                const SizedBox(height: 12),
+                Text(
+                  _bio,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[400], fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  width: width * 0.9,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color.fromRGBO(156, 39, 176, 0.3),
+                        const Color.fromRGBO(0, 0, 0, 0.4),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(
+                        color: const Color.fromRGBO(156, 39, 176, 0.5)),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Weekly Progress',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Roboto',
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: height * 0.25,
+                        child: LineChart(
+                          LineChartData(
+                            gridData: FlGridData(show: false),
+                            titlesData: FlTitlesData(show: false),
+                            borderData: FlBorderData(show: false),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: chartData,
+                                isCurved: true,
+                                color: Colors.purpleAccent,
+                                barWidth: 4,
+                                isStrokeCapRound: true,
+                                dotData: FlDotData(show: false),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color:
+                                      const Color.fromRGBO(156, 39, 176, 0.3),
+                                ),
+                              ),
+                            ],
+                            lineTouchData: LineTouchData(
+                              enabled: true,
+                              touchTooltipData: LineTouchTooltipData(
+                                getTooltipItems: (touchedSpots) {
+                                  return touchedSpots.map((spot) {
+                                    return LineTooltipItem(
+                                      '${spot.y.toStringAsFixed(1)} points',
+                                      const TextStyle(color: Colors.white),
+                                    );
+                                  }).toList();
+                                },
+                              ),
+                            ),
+                          ),
+                          duration: const Duration(milliseconds: 1000),
+                          curve: Curves.easeInOut,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Your Goals',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Roboto',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...goals.map((goal) => GoalProgressTile(goal: goal)),
+              ],
+            ),
           ),
         ),
       ),

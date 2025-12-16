@@ -1,0 +1,74 @@
+[
+  {
+    "message": "Hi there!",
+    "textAlignment": [0.0, 0.8]
+  },
+  {
+    "message": "I'm Ada",
+    "actions": ["showCharacter"],
+    "textAlignment": [0.0, 0.8]
+  },
+  {
+    "message": "Maybe you don't know me, but I'm famous for being the inventor of the sequential programming"
+    
+  },
+  {
+    "message": "That is the primordial language of the computers!",
+    "textAlignment": [0.0, 0.8]
+  },
+  {
+    "message": "Well, I didn't have a keyboard or a smartphone like you do but, I did have a 'computer'"
+  },
+  {
+    "message": "I mean, sort of a computer. It was one of the first machines that 'computed'"
+  },
+  {
+    "message": "When I was about your age, I met a mathematician named Charles Babbage"
+  },
+  {
+    "message": "He was working on a machine that could make some LONG math calculations"
+  },
+  {
+    "message": "They've asked me to translate an article about the machine and, in the process, I bacame so curious about it's functioning that I invented an entire new way of 'talking' to the machine"
+  },
+  {
+    "message": "Let me take you back in time about 200 years"
+  },
+  {
+    "message": "This part of the machine is one of the most important. It makes you input the numbers to be calculated",
+    "textAlignment": [-0.23, 0.1],
+    "actions": [
+      "moveCharacter",
+      "showBackground"
+    ]
+  },
+  {
+    "message": "If you move the first gear 10 times, the second will move 1. When the second rotates 10 times, the third will move once, and so on",
+    "textAlignment": [-0.23, 0.1]
+  },
+  {
+    "message": "How many times should I rotate the first gear to get 104 on the machine?",
+    "textAlignment": [-0.23, 0.1],
+    "actions": ["showChoices"],
+    "choices": [
+      {
+        "text": "14"
+      },
+      {
+        "text": "104"
+      },
+      {
+        "text": "1004"
+      },
+      {
+        "text": "I don't know"
+      }
+    ]
+  },
+  {
+    "message": "Correct!"
+  },
+  {
+    "actions": ["endCourse"]
+  }
+]

@@ -27,7 +27,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Gender Hack App',
+      title: 'Hack The GapP',
       initialRoute: '/home_page',
       routes: {
         '/courses': (context) => const Courses(),

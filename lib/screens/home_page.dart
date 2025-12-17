@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: ExpandableFab(
           type: ExpandableFabType.fan,
           pos: ExpandableFabPos.center,
-          margin: const EdgeInsets.only(bottom: -35), // This is no longer needed
+          margin: const EdgeInsets.only(bottom: -35),
           fanAngle: 130,
           openButtonBuilder: RotateFloatingActionButtonBuilder(
               child: const Icon(Icons.school, color: Colors.white, ),
@@ -66,7 +66,14 @@ class _HomePageState extends State<HomePage> {
               child: const Icon(Icons.school),
             ),
             FloatingActionButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => screens.Outcome(),
+                  ), 
+                );
+              },
               heroTag: null,
               child: const Icon(Icons.search),
             ),
